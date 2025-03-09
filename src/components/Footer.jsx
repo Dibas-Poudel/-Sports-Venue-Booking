@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -8,11 +9,11 @@ const Footer = () => {
 
         {/* Right: Navigation Links */}
         <nav className="space-x-6 text-sm">
-          <a href="/" className="hover:text-gray-400">Home</a>
-          <a href="/games" className="hover:text-gray-400">Games</a>
-          <a href="/contact" className="hover:text-gray-400">Contact</a>
-          <a href="/register" className="hover:text-gray-400">Register</a>
-          <a href="/login" className="hover:text-gray-400">Login</a>
+          <Link to="/" className="hover:text-gray-400">Home</Link>
+          <Link to="/games" className="hover:text-gray-400">Games</Link>
+          <Link to="/contact" className="hover:text-gray-400">Contact</Link>
+          <Link to="/register" className="hover:text-gray-400">Register</Link>
+          <Link to="/login" className="hover:text-gray-400">Login</Link>
           
         </nav>
       </div>

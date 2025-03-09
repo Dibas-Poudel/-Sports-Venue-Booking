@@ -1,40 +1,49 @@
-import React, { useState } from "react";
-import  supabase from "../services/supabaseClient"; 
+import { useState } from "react";
+import supabase from "../services/supabaseClient";
 
 const Register = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setMessage(null);
+  // Handle signup form submission
+  const handleSignup = async (e) => {
+    e.preventDefault(); 
+    setLoading(true); 
+    setMessage(null); // Reset previous message
 
-    const { user, error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
     });
 
     if (error) {
-      setError(error.message);
+      setMessage(error.message); // Show error message
     } else {
-      setMessage("Registration successful! Check your email for confirmation.");
+      setMessage("Registration successful! Please check your email for confirmation.");
     }
+    
+    setLoading(false); 
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Register</h2>
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        {message && <p className="text-green-500 text-sm mb-4">{message}</p>}
+        {message && (
+          <p className={`text-sm mb-4 ${message.includes("successful") ? "text-green-500" : "text-red-500"}`}>
+            {message}
+          </p>
+        )}
 
-        <form onSubmit={handleRegister}>
+        <form onSubmit={handleSignup}>
           <div className="mb-4">
             <label className="block text-sm mb-2">Email</label>
             <input
@@ -62,8 +71,9 @@ const Register = () => {
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+            disabled={loading}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 

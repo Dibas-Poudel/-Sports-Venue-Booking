@@ -1,10 +1,13 @@
 import {configureStore}from "@reduxjs/toolkit"
-import { bookingSlice } from "./slice/booking"
-import { userSlice } from "./slice/profile"
+
+import userReducer from "./slice/user";
 
 export const store=configureStore({
     reducer:{
-        booking:bookingSlice.reducer,
-        user:userSlice.reducer
+        user: userReducer, 
     }
 })
+
+
+
+

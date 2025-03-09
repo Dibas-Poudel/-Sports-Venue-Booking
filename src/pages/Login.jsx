@@ -1,36 +1,62 @@
-import React, { useState } from "react";
-import  supabase  from "../services/supabaseClient";
+import { useState } from "react";
+import supabase from "../services/supabaseClient";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser, setMessage, setLoading } from "../store/slice/user";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate=useNavigate ();
+  const message = useSelector((state) => state.user.message); // Access message from Redux
 
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loading, setLoadingState] = useState(false);  
+
+  // Handle form input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null);
+    dispatch(setLoading()); 
 
-    const { user, error } = await supabase.auth.signInWithPassword({
+    // Attempt login with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,
     });
 
     if (error) {
-      setError(error.message);
+      setLoadingState(false);  
+      dispatch(setMessage(error.message)); 
     } else {
-      navigate("/dashboard");
+      setLoadingState(false);  
+      dispatch(setMessage("Login successful!")); 
+      dispatch(setUser(data.user));
+      navigate("/games");
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+        {/* Display message from Redux */}
+        {message && (
+          <p
+            className={`text-sm mb-4 ${
+              message.includes("successful") ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {message}
+          </p>
+        )}
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">
@@ -59,9 +85,10 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -75,6 +102,5 @@ const Login = () => {
     </div>
   );
 };
- };
 
 export default Login;

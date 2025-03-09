@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import {store} from './store/store.js';
 
 import Layout from './components/Layout';
 
@@ -10,6 +12,13 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Contact from './pages/Contact';
 import Games from './pages/Games';
+import Indoor from './pages/Indoor';
+import Outdoor from './pages/Outdoor';
+import PlayStation from './pages/PlayStation';
+import ProtectedRoute from './components/Protected.jsx';
+import BookingPage from './pages/Booking.jsx';
+
+
 
 
 
@@ -35,15 +44,46 @@ const router = createBrowserRouter([
         element: <Login />
       },
       {
+        path: 'games/indoor',
+        element: <ProtectedRoute>
+          <Indoor />
+        </ProtectedRoute>
+      },
+      {
+        path: 'games/outdoor',
+        element:<ProtectedRoute>
+           <Outdoor />
+        </ProtectedRoute>
+      },
+      {
+        path: 'games/playstation',
+        element: <ProtectedRoute>
+          <PlayStation />
+        </ProtectedRoute>
+      },
+      {
         path: '/games',
-        element: <Games />
-      }
-    ]
-  },
-]);
+        element: <ProtectedRoute >
+          <Games>
+            
+          </Games>
+        </ProtectedRoute>
+      },
+     {
+      path:"/book/:game",
+      element:<ProtectedRoute>
+       <BookingPage />
+      </ProtectedRoute>
+   },
+  ]
+}]);
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+
+    <StrictMode>
+     <Provider store={store}>
     <RouterProvider router={router} />
+    </Provider>
   </StrictMode>
+  
 );

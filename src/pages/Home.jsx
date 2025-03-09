@@ -11,7 +11,7 @@ const Home = () => {
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
           <h1 className="text-5xl font-bold mb-4">Welcome to Our Sports & Gaming Venue</h1>
           <p className="text-xl mb-6">Book your favorite sports facilities and gaming stations with ease</p>
-          <button onClick={()=>navigate("/login")} className="bg-blue-500 text-white py-2 px-6 rounded-full text-lg transition-transform transform hover:scale-105">
+          <button onClick={()=>navigate("/games")} className="bg-blue-500 text-white py-2 px-6 rounded-full text-lg transition-transform transform hover:scale-105">
             Book Now
           </button>
         </div>
