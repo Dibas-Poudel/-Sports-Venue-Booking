@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const dispatch = useDispatch();
   const navigate=useNavigate ();
-  const message = useSelector((state) => state.user.message); // Access message from Redux
+  const message = useSelector((state) => state.user.message); 
 
   const [formData, setFormData] = useState({
     email: "",

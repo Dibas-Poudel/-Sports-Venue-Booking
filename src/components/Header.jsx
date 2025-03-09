@@ -74,12 +74,22 @@ const Header = () => {
               </Link>
             </li>
             {user ? (
+              <>
+              <li>
+              <Link
+                to="/dashboard"
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              >
+                Dashboard
+              </Link>
+            </li>
               <button
                 onClick={handleLogout}
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
               >
                 Logout
               </button>
+              </>
             ) : (
               <>
                 <li>
@@ -136,12 +146,22 @@ const Header = () => {
               </Link>
             </li>
             {user ? (
+              <>
+              <li>
+              <Link
+                to="/dashboard"
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              >
+                Dashboard
+              </Link>
+            </li>
               <button
                 onClick={handleLogout}
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
               >
                 Logout
               </button>
+              </>
             ) : (
               <>
                 <li>

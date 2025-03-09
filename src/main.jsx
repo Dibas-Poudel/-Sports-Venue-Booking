@@ -17,6 +17,7 @@ import Outdoor from './pages/Outdoor';
 import PlayStation from './pages/PlayStation';
 import ProtectedRoute from './components/Protected.jsx';
 import BookingPage from './pages/Booking.jsx';
+import Dashboard from './pages/UserDashboard/Dashboard.jsx';
 
 
 
@@ -75,6 +76,12 @@ const router = createBrowserRouter([
        <BookingPage />
       </ProtectedRoute>
    },
+   {
+    path:"/dashboard",
+    element:<ProtectedRoute>
+     <Dashboard />
+    </ProtectedRoute>
+ },
   ]
 }]);
 

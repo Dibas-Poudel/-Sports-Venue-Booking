@@ -1,5 +1,6 @@
 import { useState } from "react";
 import supabase from "../services/supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const navigate = useNavigate(); // for redirecting to login after registration
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,9 +17,16 @@ const Register = () => {
 
   // Handle signup form submission
   const handleSignup = async (e) => {
-    e.preventDefault(); 
-    setLoading(true); 
+    e.preventDefault();
+    setLoading(true);
     setMessage(null); // Reset previous message
+
+    // Simple validation
+    if (!formData.email || !formData.password) {
+      setMessage("Please fill in both fields.");
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email: formData.email,
@@ -28,9 +37,11 @@ const Register = () => {
       setMessage(error.message); // Show error message
     } else {
       setMessage("Registration successful! Please check your email for confirmation.");
+      // Redirect to login page after successful registration
+      setTimeout(() => navigate("/login"), 3000); 
     }
-    
-    setLoading(false); 
+
+    setLoading(false);
   };
 
   return (
@@ -38,7 +49,11 @@ const Register = () => {
       <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Register</h2>
         {message && (
-          <p className={`text-sm mb-4 ${message.includes("successful") ? "text-green-500" : "text-red-500"}`}>
+          <p
+            className={`text-sm mb-4 ${
+              message.includes("successful") ? "text-green-500" : "text-red-500"
+            }`}
+          >
             {message}
           </p>
         )}
