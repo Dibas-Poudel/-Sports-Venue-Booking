@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import supabase from "../../services/supabaseClient";
 
 const UserBookings = () => {
-  const user = useSelector((state) => state.user.profile);
+  const user = useSelector((state) => state.user.profile); // Get user info from Redux state
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -13,13 +13,14 @@ const UserBookings = () => {
   const [updatedDate, setUpdatedDate] = useState("");
   const [updatedTime, setUpdatedTime] = useState("");
 
+  // Fetch bookings for the current user
   const fetchBookings = async () => {
     setLoading(true);
     setError("");
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("*")
+        .select("booking_id, venue_name, date, time, user_id") // Make sure booking_id is selected
         .eq("user_id", user?.id)
         .order("date", { ascending: true });
 
@@ -35,39 +36,59 @@ const UserBookings = () => {
     setLoading(false);
   };
 
+  // Fetch bookings when the user is available
   useEffect(() => {
     if (user?.id) {
       fetchBookings();
     }
   }, [user]);
 
-  const handleDelete = async (id) => {
+  // Handle deletion of booking
+  const handleDelete = async (booking_id) => {
+    if (!booking_id) {
+      setError("Invalid booking ID.");
+      return;
+    }
+
     const isConfirmed = window.confirm("Are you sure you want to delete this booking?");
     if (!isConfirmed) return;
 
     try {
-      const { error } = await supabase.from("bookings").delete().eq("id", id);
+      console.log(`Deleting booking with booking_id: ${booking_id}`); // Debugging line
+      const { error } = await supabase.from("bookings").delete().eq("booking_id", booking_id);
+
       if (error) {
         throw new Error(error.message);
       }
-      setBookings((prev) => prev.filter((booking) => booking.id !== id));
+
+      // Re-fetch bookings after delete
+      fetchBookings();
     } catch (err) {
       setError("Error deleting booking: " + err.message);
       console.error("Delete error:", err.message);
     }
   };
 
+  // Handle edit of booking
   const handleEdit = (booking) => {
     setIsEditing(true);
-    setCurrentBooking(booking);
+    setCurrentBooking(booking); // Set currentBooking correctly
     setUpdatedVenueName(booking.venue_name);
     setUpdatedDate(booking.date);
     setUpdatedTime(booking.time);
   };
 
+  // Handle update of booking
   const handleUpdate = async (e) => {
     e.preventDefault();
 
+    if (!currentBooking || !currentBooking.booking_id) {
+      setError("Invalid booking ID.");
+      return;
+    }
+
+    // Check if the booking ID exists in the database before attempting the update
+    console.log(`Updating booking with booking_id: ${currentBooking.booking_id}`); // Debugging line
     const updatedBookingData = {
       venue_name: updatedVenueName,
       date: updatedDate,
@@ -75,20 +96,20 @@ const UserBookings = () => {
     };
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("bookings")
         .update(updatedBookingData)
-        .eq("id", currentBooking.id);
+        .eq("booking_id", currentBooking.booking_id);
 
       if (error) {
         throw new Error(error.message);
       }
 
-      setBookings((prevBookings) =>
-        prevBookings.map((booking) =>
-          booking.id === currentBooking.id ? { ...booking, ...updatedBookingData } : booking
-        )
-      );
+      // Check if the update was successful
+      console.log("Updated booking:", data); // Debugging line
+
+      // Re-fetch bookings after update
+      fetchBookings();
 
       setIsEditing(false);
       setCurrentBooking(null);
@@ -120,19 +141,19 @@ const UserBookings = () => {
           </thead>
           <tbody>
             {bookings.map((booking) => (
-              <tr key={booking.id}>
+              <tr key={booking.booking_id}>
                 <td className="py-2 px-4 border">{booking.venue_name}</td>
                 <td className="py-2 px-4 border">{booking.date}</td>
                 <td className="py-2 px-4 border">{booking.time || "TBD"}</td>
                 <td className="py-2 px-4 border">
                   <button
-                    onClick={() => handleEdit(booking)}
+                    onClick={() => handleEdit(booking)} // Set currentBooking properly
                     className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(booking.id)}
+                    onClick={() => handleDelete(booking.booking_id)} // Pass booking_id
                     className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 ml-2"
                   >
                     Delete

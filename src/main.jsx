@@ -18,6 +18,8 @@ import PlayStation from './pages/PlayStation';
 import ProtectedRoute from './components/Protected.jsx';
 import BookingPage from './pages/Booking.jsx';
 import Dashboard from './pages/UserDashboard/Dashboard.jsx';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute.jsx';
+import AdminPannel from './pages/Admin Pannel/AdminPannel.jsx';
 
 
 
@@ -82,6 +84,12 @@ const router = createBrowserRouter([
      <Dashboard />
     </ProtectedRoute>
  },
+ {
+  path:"/admin",
+  element:<ProtectedAdminRoute>
+    <AdminPannel/>
+  </ProtectedAdminRoute>
+ }
   ]
 }]);
 

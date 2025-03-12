@@ -49,7 +49,6 @@ const BookingPage = () => {
     setError("");
 
     const { data, error } = await supabase
-<<<<<<< HEAD
       .from("bookings")
       .insert([
         {
@@ -61,18 +60,6 @@ const BookingPage = () => {
         },
       ]);
 
-=======
-  .from("bookings")
-  .insert([
-    {
-      user_id: user.id, // ✅ CORRECT: this links booking to the logged-in user
-      venue_name: game,
-      date,
-      time,  
-      name,
-    },
-  ]);
->>>>>>> 1b93fe4 (3/12)
     if (error) {
       setError("Error creating booking: " + error.message);
     } else {
