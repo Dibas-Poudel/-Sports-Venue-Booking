@@ -1,6 +1,6 @@
 import { useState } from "react";
 import supabase from "../services/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -77,10 +77,6 @@ const Register = () => {
     setLoading(false);
   };
 
-<<<<<<< HEAD
-=======
-  // ✅ JSX must be here, outside the function!
->>>>>>> 1b93fe4 (3/12)
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
@@ -131,9 +127,9 @@ const Register = () => {
 
         <p className="text-sm text-center mt-4">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-400 hover:underline">
+          <Link to="/login" className="text-blue-400 hover:underline">
             Login here
-          </a>
+          </Link>
         </p>
       </div>
     </div>

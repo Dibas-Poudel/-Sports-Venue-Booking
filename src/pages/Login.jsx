@@ -2,7 +2,7 @@ import { useState } from "react";
 import supabase from "../services/supabaseClient";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, setMessage, setLoading } from "../store/slice/user";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -15,7 +15,6 @@ const Login = () => {
   });
   const [loading, setLoadingState] = useState(false);  
 
-  // Handle form input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -94,9 +93,9 @@ const Login = () => {
 
         <p className="text-sm text-center mt-4">
           Don't have an account?{" "}
-          <a href="/register" className="text-blue-400 hover:underline">
+          <Link to="/register" className="text-blue-400 hover:underline">
             Register here
-          </a>
+          </Link>
         </p>
       </div>
     </div>

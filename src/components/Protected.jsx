@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
-  const user = useSelector((state) => state.user.profile); // Get user from Redux store
+  const user = useSelector((state) => state.user.profile);
   const navigate = useNavigate();
 
   useEffect(() => {

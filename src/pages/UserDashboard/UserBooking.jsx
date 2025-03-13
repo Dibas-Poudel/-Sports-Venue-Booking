@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import supabase from "../../services/supabaseClient";
 
 const UserBookings = () => {
-  const user = useSelector((state) => state.user.profile); // Get user info from Redux state
+  const user = useSelector((state) => state.user.profile); 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,7 +20,7 @@ const UserBookings = () => {
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("booking_id, venue_name, date, time, user_id") // Make sure booking_id is selected
+        .select("booking_id, venue_name, date, time, user_id, verified") // Include verified column
         .eq("user_id", user?.id)
         .order("date", { ascending: true });
 
@@ -54,7 +54,6 @@ const UserBookings = () => {
     if (!isConfirmed) return;
 
     try {
-      console.log(`Deleting booking with booking_id: ${booking_id}`); // Debugging line
       const { error } = await supabase.from("bookings").delete().eq("booking_id", booking_id);
 
       if (error) {
@@ -72,7 +71,7 @@ const UserBookings = () => {
   // Handle edit of booking
   const handleEdit = (booking) => {
     setIsEditing(true);
-    setCurrentBooking(booking); // Set currentBooking correctly
+    setCurrentBooking(booking); 
     setUpdatedVenueName(booking.venue_name);
     setUpdatedDate(booking.date);
     setUpdatedTime(booking.time);
@@ -87,8 +86,6 @@ const UserBookings = () => {
       return;
     }
 
-    // Check if the booking ID exists in the database before attempting the update
-    console.log(`Updating booking with booking_id: ${currentBooking.booking_id}`); // Debugging line
     const updatedBookingData = {
       venue_name: updatedVenueName,
       date: updatedDate,
@@ -104,11 +101,7 @@ const UserBookings = () => {
       if (error) {
         throw new Error(error.message);
       }
-
-      // Check if the update was successful
-      console.log("Updated booking:", data); // Debugging line
-
-      // Re-fetch bookings after update
+      
       fetchBookings();
 
       setIsEditing(false);
@@ -136,6 +129,7 @@ const UserBookings = () => {
               <th className="py-2 px-4 border">Venue</th>
               <th className="py-2 px-4 border">Date</th>
               <th className="py-2 px-4 border">Time</th>
+              <th className="py-2 px-4 border">Status</th> {/* Add Status column */}
               <th className="py-2 px-4 border">Actions</th>
             </tr>
           </thead>
@@ -145,6 +139,14 @@ const UserBookings = () => {
                 <td className="py-2 px-4 border">{booking.venue_name}</td>
                 <td className="py-2 px-4 border">{booking.date}</td>
                 <td className="py-2 px-4 border">{booking.time || "TBD"}</td>
+                <td className="py-2 px-4 border">
+                  {/* Display booking status */}
+                  {booking.verified ? (
+                    <span className="text-green-500 font-semibold">Verified</span>
+                  ) : (
+                    <span className="text-red-500 font-semibold">Not Verified</span>
+                  )}
+                </td>
                 <td className="py-2 px-4 border">
                   <button
                     onClick={() => handleEdit(booking)} // Set currentBooking properly

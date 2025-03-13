@@ -1,39 +1,39 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react'; // Import useState, useEffect for fetching profile
+import { useState, useEffect } from 'react'; 
 import { logout } from '../store/slice/user';
-import fetchUserProfile from '../features/fetchUserProfile'; // Import the function to fetch user profile
+import fetchUserProfile from '../features/fetchUserProfile'; 
 import supabase from '../services/supabaseClient';
 
 const Header = () => {
   const user = useSelector((state) => state.user.profile);
   const dispatch = useDispatch();
 
-  const [menuOpen, setMenuOpen] = useState(false); // State to track if the menu is open or closed
-  const [role, setRole] = useState(null); // State to store user role
-  const [loading, setLoading] = useState(true); // Loading state while fetching profile
+  const [menuOpen, setMenuOpen] = useState(false); 
+  const [role, setRole] = useState(null); 
+  const [loading, setLoading] = useState(true); 
 
   // Fetch user role based on authenticated user
   useEffect(() => {
     const fetchRole = async () => {
       if (user && user.id) {
         try {
-          const userProfile = await fetchUserProfile(user.id); // Fetch role based on user ID
+          const userProfile = await fetchUserProfile(user.id); 
           setRole(userProfile.role);
         } catch (error) {
           console.error('Error fetching user profile:', error);
         } finally {
-          setLoading(false); // Set loading to false after the data is fetched
+          setLoading(false); 
         }
       } else {
-        setLoading(false); // No need to fetch role if user is not logged in
+        setLoading(false); 
       }
     };
 
     if (user) {
       fetchRole();
     } else {
-      setLoading(false); // If no user is logged in, stop loading
+      setLoading(false); 
     }
   }, [user]);
   const handleLogout = async () => {
