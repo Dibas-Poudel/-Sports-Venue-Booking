@@ -17,7 +17,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Mission Section */}
+      {/* Mission SectioN */}
       <section className="py-16 bg-gray-900 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8">Our Mission</h2>

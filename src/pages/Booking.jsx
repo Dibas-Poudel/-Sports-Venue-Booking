@@ -61,7 +61,7 @@ const BookingPage = () => {
       ]);
 
     if (error) {
-      setError("Error creating booking: " + error.message);
+      setError("Error Creating booking: " + error.message);
     } else {
       navigate("/dashboard");
     }

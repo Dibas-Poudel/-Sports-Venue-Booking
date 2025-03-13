@@ -24,7 +24,7 @@ const Login = () => {
     e.preventDefault();
     dispatch(setLoading()); 
 
-    // Attempt login with Supabase
+    // Attempt Login with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,

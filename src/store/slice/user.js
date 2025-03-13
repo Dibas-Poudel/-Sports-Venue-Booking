@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  profile: null, // User profile data
+  profile: null, // User profile Data
   loading: false,
   message: null,
 };

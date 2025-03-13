@@ -8,7 +8,7 @@ const fetchUserProfile = async (userId) => {
     .single();
 
   if (error) {
-    console.error("Error fetching user profile:", error.message);
+    console.error("Error fetching User profile:", error.message);
     return null;
   }
 

@@ -38,7 +38,7 @@ const ProtectedAdminRoute = ({ children }) => {
 
   if (loading) return <div>Loading...</div>;
 
-  return isAdmin ? <>{children}</> : null;
+  return isAdmin ? <>{children}</> : null;//IF Admin show children
 };
 
 export default ProtectedAdminRoute;

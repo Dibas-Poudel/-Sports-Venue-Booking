@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If user is not logged in, redirect to login page
+    // If User is not logged in, redirect to login page
     if (!user) {
       navigate("/login");
     }

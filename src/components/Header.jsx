@@ -13,7 +13,7 @@ const Header = () => {
   const [role, setRole] = useState(null); 
   const [loading, setLoading] = useState(true); 
 
-  // Fetch user role based on authenticated user
+  // Fetch User role based on authenticated user
   useEffect(() => {
     const fetchRole = async () => {
       if (user && user.id) {

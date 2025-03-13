@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <footer className="bg-gray-800 text-white py-6">
       <div className="max-w-screen-xl mx-auto flex justify-between items-center">
-        {/* Left: Copyright */}
+        {/* Left: copyright */}
         <p className="text-sm">&copy; 2025 DibasSports. All rights reserved.</p>
 
         {/* Right: Navigation Links */}

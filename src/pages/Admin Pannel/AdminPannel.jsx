@@ -45,7 +45,7 @@ const AdminPanel = () => {
       .select();
 
     if (error) {
-      alert(`Error adding game: ${error.message}`);
+      alert(`Error Adding game: ${error.message}`);
     } else {
       setGames((prevGames) => [...prevGames, ...data]);
       setNewGame({ name: '', type: '', description: '', price: '', image_url: '' });

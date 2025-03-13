@@ -55,7 +55,7 @@ const OutdoorGames = () => {
                   <h3 className="text-2xl font-bold mb-2">{sport.name}</h3>
                   <p className="text-gray-300 text-sm mb-2">{sport.description}</p>
 
-                  <p className="text-white font-semibold mb-4">Price: Rs. {sport.price}</p>
+                  <p className="text-white font-semibold mb-4">Price: Rs {sport.price}</p>
 
                   <Link
                     to={`/book/${sport.name.toLowerCase().replace(/\s+/g, '-')}`}

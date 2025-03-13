@@ -48,29 +48,29 @@ const router = createBrowserRouter([
       },
       {
         path: 'games/indoor',
-        element: <ProtectedRoute>
+        element: <>
           <Indoor />
-        </ProtectedRoute>
+        </>
       },
       {
         path: 'games/outdoor',
-        element:<ProtectedRoute>
+        element:<>
            <Outdoor />
-        </ProtectedRoute>
+        </>
       },
       {
         path: 'games/playstation',
-        element: <ProtectedRoute>
+        element: <>
           <PlayStation />
-        </ProtectedRoute>
+        </>
       },
       {
         path: '/games',
-        element: <ProtectedRoute >
+        element: < >
           <Games>
             
           </Games>
-        </ProtectedRoute>
+        </>
       },
      {
       path:"/book/:game",

@@ -3,7 +3,7 @@ import React from "react";
 const Contact = () => {
   return (
     <section className="relative bg-gray-900 text-white py-16 px-6">
-      {/* Background Image */}
+      {/* Background image */}
       <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: "url('https://images.pexels.com/photos/3183153/pexels-photo-3183153.jpeg')" }}></div>
 
       <div className="relative max-w-6xl mx-auto">
