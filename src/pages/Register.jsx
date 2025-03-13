@@ -9,17 +9,12 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
-<<<<<<< HEAD
-  const navigate = useNavigate(); // for redirecting to login after registration
-=======
   const navigate = useNavigate();
->>>>>>> 1b93fe4 (3/12)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-<<<<<<< HEAD
   // Handle signup form submission
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -27,13 +22,6 @@ const Register = () => {
     setMessage(null); // Reset previous message
 
     // Simple validation
-=======
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
-
->>>>>>> 1b93fe4 (3/12)
     if (!formData.email || !formData.password) {
       setMessage("Please fill in both fields.");
       setLoading(false);
@@ -46,13 +34,6 @@ const Register = () => {
     });
 
     if (error) {
-<<<<<<< HEAD
-      setMessage(error.message); // Show error message
-    } else {
-      setMessage("Registration successful! Please check your email for confirmation.");
-      // Redirect to login page after successful registration
-      setTimeout(() => navigate("/login"), 3000); 
-=======
       setMessage(error.message);
     } else {
       const userId = data.user?.id;
@@ -71,7 +52,6 @@ const Register = () => {
           setTimeout(() => navigate("/login"), 3000);
         }
       }
->>>>>>> 1b93fe4 (3/12)
     }
 
     setLoading(false);
