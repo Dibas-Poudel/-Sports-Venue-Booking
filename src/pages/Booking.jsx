@@ -2,41 +2,36 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../services/supabaseClient";
 
-const BookingPage = () => {
-  const { game } = useParams(); // Get the game/venue name from the URL params
-  const navigate = useNavigate(); // Navigation hook to redirect after booking
-  const [name, setName] = useState(""); // User's name for booking
-  const [date, setDate] = useState(""); // Date for the booking
-  const [time, setTime] = useState(""); // Start time for the booking
-  const [loading, setLoading] = useState(false); // Loading state during the booking process
-  const [error, setError] = useState(""); // Error message state
-  const [user, setUser] = useState(null); // User information from Supabase
 
+const BookingPage = () => {
+  const { game } = useParams();
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
+  
   useEffect(() => {
     const fetchUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-
+  
       if (error) {
         console.error("Error fetching user:", error.message);
         setLoading(false);
         return;
       }
-
-      setUser(data?.user); // Set the user info from Supabase
-      setLoading(false);
+  
+      setUser(data?.user);
+      setLoading(false);  
     };
-
-    fetchUser(); // Fetch user info when the component mounts
+  
+    fetchUser();
   }, []);
 
-  // Helper function to calculate the end time (60 minutes after the start time)
-  const calculateEndTime = (startTime) => {
-    const [hours, minutes] = startTime.split(":").map(Number); // Split and convert to numbers
-    const endDate = new Date(0, 0, 0, hours, minutes + 60); // Add 60 minutes
-    return endDate.toISOString().substring(11, 16); // Return the end time in HH:mm format
-  };
+  
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -51,51 +46,25 @@ const BookingPage = () => {
     }
 
     setLoading(true);
-    setError(""); // Reset any previous error
+    setError("");
 
-    const startTime = time;
-    const endTime = calculateEndTime(startTime); // Calculate the end time (60 minutes later)
-
-    // Check if the selected time slot is available
-    const { data, error: availabilityError } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("venue_name", game) // Check for the selected venue
-      .eq("date", date) // Check for the selected date
-      .filter("time", "lt", endTime) // Check if the existing booking's time is before the calculated end time
-      .filter("time", "gt", startTime); // Check if the existing booking's time is after the selected start time
-
-    if (availabilityError) {
-      setError("Error checking availability: " + availabilityError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.length > 0) {
-      setError("Selected time slot is already booked.");
-      setLoading(false);
-      return;
-    }
-
-    // Insert the new booking if the slot is available
-    const { insertData, insertError } = await supabase
+    const { data, error } = await supabase
       .from("bookings")
       .insert([
         {
           user_id: user.id,
           venue_name: game,
           date,
-          time: startTime, // Store the start time
+          time,  
           name,
         },
       ]);
 
-    if (insertError) {
-      setError("Error creating booking: " + insertError.message);
+    if (error) {
+      setError("Error Creating booking: " + error.message);
     } else {
-      navigate("/dashboard"); // Redirect to dashboard if booking is successful
+      navigate("/dashboard");
     }
-
     setLoading(false);
   };
 
@@ -103,10 +72,10 @@ const BookingPage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
       <h1 className="text-4xl font-bold">Booking for {game.replace("-", " ")}</h1>
       <p className="text-lg text-gray-300 mt-4">Complete your booking for {game}.</p>
-
+      
       <form onSubmit={handleSubmit} className="mt-8 p-6 bg-gray-800 rounded-lg">
         {error && <p className="text-red-500 mb-4">{error}</p>}
-
+        
         <label className="block mb-4">
           Name:
           <input
@@ -118,7 +87,7 @@ const BookingPage = () => {
             disabled={loading}
           />
         </label>
-
+        
         <label className="block mb-4">
           Date:
           <input
