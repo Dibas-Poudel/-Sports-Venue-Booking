@@ -19,7 +19,7 @@ const Register = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null); // Reset previous message
+    setMessage(null); 
 
     // Simple validation
     if (!formData.email || !formData.password) {

@@ -1,21 +1,32 @@
-import { Link } from "react-router-dom";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
 const Footer = () => {
   return (
     <footer className="bg-gray-800 text-white py-6">
-      <div className="max-w-screen-xl mx-auto flex justify-between items-center">
-        {/* Left: copyright */}
-        <p className="text-sm">&copy; 2025 DibasSports. All rights reserved.</p>
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Footer Container */}
+        <div className="flex flex-col sm:flex-row justify-between items-center">
+          {/* Left: copyright */}
+          <p className="text-center sm:text-left text-sm mb-4 sm:mb-0">
+            &copy; 2025 DibasSports. All rights reserved.
+          </p>
 
-        {/* Right: Navigation Links */}
-        <nav className="space-x-6 text-sm">
-          <Link to="/" className="hover:text-gray-400">Home</Link>
-          <Link to="/games" className="hover:text-gray-400">Games</Link>
-          <Link to="/contact" className="hover:text-gray-400">Contact</Link>
-          <Link to="/register" className="hover:text-gray-400">Register</Link>
-          <Link to="/login" className="hover:text-gray-400">Login</Link>
-          
-        </nav>
+          {/* Right: Social Media Links */}
+          <div className="flex justify-center sm:justify-end space-x-6 text-xl">
+            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors duration-200">
+              <FaFacebook />
+            </a>
+            <a href="https://www.twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors duration-200">
+              <FaTwitter />
+            </a>
+            <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors duration-200">
+              <FaInstagram />
+            </a>
+            <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors duration-200">
+              <FaLinkedin />
+            </a>
+          </div>
+        </div>
       </div>
     </footer>
   );

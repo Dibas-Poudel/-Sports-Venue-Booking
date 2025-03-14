@@ -47,7 +47,7 @@ const OutdoorGames = () => {
                 className="relative group overflow-hidden rounded-lg shadow-lg cursor-pointer bg-gray-800"
               >
                 <img
-                  src={sport.image_url || '/images/default.jpg'}
+                  src={sport.image_url || '/images/football.jpg'}
                   alt={sport.name}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500"
                 />

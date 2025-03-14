@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-// Game Data
 const games = [
   {
     title: "Outdoor Games",

@@ -84,10 +84,10 @@ const AdminPanel = () => {
     }
   };
 
-  const handleVerifyBooking = async (bookingId) => {
+  const handleVerifyBooking = async (bookingId, currentStatus) => {
     const { data, error } = await supabase
       .from('bookings')
-      .update({ verified: true })
+      .update({ verified: !currentStatus }) 
       .eq('booking_id', bookingId)
       .select();
 
@@ -113,17 +113,49 @@ const AdminPanel = () => {
       {/* Add Game Form */}
       <div className="add-game-form mb-8 bg-gray-500 p-4 rounded-lg shadow-sm">
         <h2 className="text-2xl font-semibold mb-4">Add New Game</h2>
-        <input type="text" placeholder="Game Name" value={newGame.name} onChange={(e) => setNewGame({ ...newGame, name: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black" />
-        <select value={newGame.type} onChange={(e) => setNewGame({ ...newGame, type: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black">
+        <input
+          type="text"
+          placeholder="Game Name"
+          value={newGame.name}
+          onChange={(e) => setNewGame({ ...newGame, name: e.target.value })}
+          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+        />
+        <select
+          value={newGame.type}
+          onChange={(e) => setNewGame({ ...newGame, type: e.target.value })}
+          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+        >
           <option value="">Select Type</option>
           <option value="Indoor">Indoor</option>
           <option value="Outdoor">Outdoor</option>
           <option value="PlayStation">PlayStation</option>
         </select>
-        <textarea placeholder="Game Description" value={newGame.description} onChange={(e) => setNewGame({ ...newGame, description: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black" />
-        <input type="number" placeholder="Game Price" value={newGame.price} onChange={(e) => setNewGame({ ...newGame, price: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black" />
-        <input type="text" placeholder="Image URL" value={newGame.image_url} onChange={(e) => setNewGame({ ...newGame, image_url: e.target.value })} className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black" />
-        <button onClick={handleAddGame} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">Add Game</button>
+        <textarea
+          placeholder="Game Description"
+          value={newGame.description}
+          onChange={(e) => setNewGame({ ...newGame, description: e.target.value })}
+          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+        />
+        <input
+          type="number"
+          placeholder="Game Price"
+          value={newGame.price}
+          onChange={(e) => setNewGame({ ...newGame, price: e.target.value })}
+          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+        />
+        <input
+          type="text"
+          placeholder="Image URL"
+          value={newGame.image_url}
+          onChange={(e) => setNewGame({ ...newGame, image_url: e.target.value })}
+          className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
+        />
+        <button
+          onClick={handleAddGame}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+        >
+          Add Game
+        </button>
       </div>
 
       {/* Display Games */}
@@ -136,8 +168,18 @@ const AdminPanel = () => {
             <p><strong>Description:</strong> {game.description}</p>
             <p><strong>Price:</strong> Rs.{game.price}</p>
             <div className="mt-4 flex space-x-4">
-              <button onClick={() => setSelectedGame(game)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md">Edit</button>
-              <button onClick={() => handleDeleteGame(game.id)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">Delete</button>
+              <button
+                onClick={() => setSelectedGame(game)}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteGame(game.id)}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}
@@ -147,17 +189,45 @@ const AdminPanel = () => {
       {selectedGame && (
         <div className="edit-game-form mb-8 bg-gray-800 p-4 rounded-lg shadow-sm">
           <h2 className="text-2xl font-semibold mb-4">Edit Game</h2>
-          <input type="text" value={selectedGame.name} onChange={(e) => setSelectedGame({ ...selectedGame, name: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black" />
-          <select value={selectedGame.type} onChange={(e) => setSelectedGame({ ...selectedGame, type: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black">
+          <input
+            type="text"
+            value={selectedGame.name}
+            onChange={(e) => setSelectedGame({ ...selectedGame, name: e.target.value })}
+            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          />
+          <select
+            value={selectedGame.type}
+            onChange={(e) => setSelectedGame({ ...selectedGame, type: e.target.value })}
+            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          >
             <option value="">Select Type</option>
             <option value="Indoor">Indoor</option>
             <option value="Outdoor">Outdoor</option>
             <option value="PlayStation">PlayStation</option>
           </select>
-          <textarea value={selectedGame.description} onChange={(e) => setSelectedGame({ ...selectedGame, description: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black" />
-          <input type="number" value={selectedGame.price} onChange={(e) => setSelectedGame({ ...selectedGame, price: e.target.value })} className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black" />
-          <input type="text" value={selectedGame.image_url} onChange={(e) => setSelectedGame({ ...selectedGame, image_url: e.target.value })} className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black" />
-          <button onClick={() => handleUpdateGame(selectedGame.id)} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">Update Game</button>
+          <textarea
+            value={selectedGame.description}
+            onChange={(e) => setSelectedGame({ ...selectedGame, description: e.target.value })}
+            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          />
+          <input
+            type="number"
+            value={selectedGame.price}
+            onChange={(e) => setSelectedGame({ ...selectedGame, price: e.target.value })}
+            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          />
+          <input
+            type="text"
+            value={selectedGame.image_url}
+            onChange={(e) => setSelectedGame({ ...selectedGame, image_url: e.target.value })}
+            className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
+          />
+          <button
+            onClick={() => handleUpdateGame(selectedGame.id)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+          >
+            Update Game
+          </button>
         </div>
       )}
 
@@ -172,9 +242,23 @@ const AdminPanel = () => {
             <p><strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}</p>
             <p><strong>Time:</strong> {booking.time}</p>
             <p><strong>Status:</strong> {booking.verified ? 'Verified' : 'Pending'}</p>
-            {!booking.verified && (
-              <button onClick={() => handleVerifyBooking(booking.booking_id)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md mt-2">Verify Booking</button>
-            )}
+            <div className="mt-2">
+              {booking.verified ? (
+                <button
+                  onClick={() => handleVerifyBooking(booking.booking_id, booking.verified)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+                >
+                  Unverify Booking
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleVerifyBooking(booking.booking_id, booking.verified)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                >
+                  Verify Booking
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

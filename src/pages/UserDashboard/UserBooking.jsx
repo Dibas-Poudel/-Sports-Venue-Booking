@@ -20,7 +20,7 @@ const UserBookings = () => {
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("booking_id, venue_name, date, time, user_id, verified") // Include verified column
+        .select("booking_id, venue_name, date, time, user_id, verified") 
         .eq("user_id", user?.id)
         .order("date", { ascending: true });
 
@@ -129,7 +129,7 @@ const UserBookings = () => {
               <th className="py-2 px-4 border">Venue</th>
               <th className="py-2 px-4 border">Date</th>
               <th className="py-2 px-4 border">Time</th>
-              <th className="py-2 px-4 border">Status</th> {/* Add Status column */}
+              <th className="py-2 px-4 border">Status</th> 
               <th className="py-2 px-4 border">Actions</th>
             </tr>
           </thead>
