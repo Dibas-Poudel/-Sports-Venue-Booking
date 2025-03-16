@@ -13,7 +13,6 @@ const UserBookings = () => {
   const [updatedDate, setUpdatedDate] = useState("");
   const [updatedTime, setUpdatedTime] = useState("");
 
-  // Fetch bookings for the current user
   const fetchBookings = async () => {
     setLoading(true);
     setError("");
@@ -36,14 +35,12 @@ const UserBookings = () => {
     setLoading(false);
   };
 
-  // Fetch bookings when the user is available
   useEffect(() => {
     if (user?.id) {
       fetchBookings();
     }
   }, [user]);
 
-  // Handle deletion of booking
   const handleDelete = async (booking_id) => {
     if (!booking_id) {
       setError("Invalid booking ID.");
@@ -60,7 +57,6 @@ const UserBookings = () => {
         throw new Error(error.message);
       }
 
-      // Re-fetch bookings after delete
       fetchBookings();
     } catch (err) {
       setError("Error deleting booking: " + err.message);
@@ -68,7 +64,6 @@ const UserBookings = () => {
     }
   };
 
-  // Handle edit of booking
   const handleEdit = (booking) => {
     setIsEditing(true);
     setCurrentBooking(booking);
@@ -77,7 +72,6 @@ const UserBookings = () => {
     setUpdatedTime(booking.time);
   };
 
-  // Handle update of booking
   const handleUpdate = async (e) => {
     e.preventDefault();
 
@@ -93,7 +87,7 @@ const UserBookings = () => {
     };
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("bookings")
         .update(updatedBookingData)
         .eq("booking_id", currentBooking.booking_id);
@@ -103,7 +97,6 @@ const UserBookings = () => {
       }
 
       fetchBookings();
-
       setIsEditing(false);
       setCurrentBooking(null);
     } catch (err) {
@@ -113,7 +106,7 @@ const UserBookings = () => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md mt-6">
+    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mt-6 max-w-full overflow-x-hidden">
       <h2 className="text-2xl font-semibold mb-4">My Bookings</h2>
 
       {loading ? (
@@ -123,59 +116,60 @@ const UserBookings = () => {
       ) : bookings.length === 0 ? (
         <p>No bookings found.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-4 border">Venue</th>
-                <th className="py-2 px-4 border">Date</th>
-                <th className="py-2 px-4 border">Time</th>
-                <th className="py-2 px-4 border">Status</th>
-                <th className="py-2 px-4 border">Actions</th>
+        <div className="overflow-x-auto w-full">
+        <table className="min-w-[700px] w-full text-sm sm:text-base border-collapse">
+          <thead>
+            <tr className="bg-gray-100 text-xs sm:text-sm">
+              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Venue</th>
+              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Date</th>
+              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Time</th>
+              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Status</th>
+              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map((booking) => (
+              <tr key={booking.booking_id} className="text-xs sm:text-sm">
+                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.venue_name}</td>
+                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.date}</td>
+                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.time || "TBD"}</td>
+                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">
+                  {booking.verified ? (
+                    <span className="text-green-500 font-semibold">Verified</span>
+                  ) : (
+                    <span className="text-red-500 font-semibold">Not Verified</span>
+                  )}
+                </td>
+                <td className="py-2 px-3 sm:px-4 border space-x-1 sm:space-x-2 whitespace-nowrap">
+                  <button
+                    onClick={() => handleEdit(booking)}
+                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(booking.booking_id)}
+                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {bookings.map((booking) => (
-                <tr key={booking.booking_id}>
-                  <td className="py-2 px-4 border">{booking.venue_name}</td>
-                  <td className="py-2 px-4 border">{booking.date}</td>
-                  <td className="py-2 px-4 border">{booking.time || "TBD"}</td>
-                  <td className="py-2 px-4 border">
-                    {booking.verified ? (
-                      <span className="text-green-500 font-semibold">Verified</span>
-                    ) : (
-                      <span className="text-red-500 font-semibold">Not Verified</span>
-                    )}
-                  </td>
-                  <td className="py-2 px-4 border">
-                    <button
-                      onClick={() => handleEdit(booking)}
-                      className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(booking.booking_id)}
-                      className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 ml-2"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
       )}
 
       {/* Edit Modal/Form */}
       {isEditing && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-            <h2 className="text-2xl font-semibold mb-4">Edit Booking</h2>
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-60 px-4">
+          <div className="bg-white w-full max-w-sm sm:max-w-md p-4 sm:p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4">Edit Booking</h2>
             <form onSubmit={handleUpdate}>
               <div className="mb-4">
-                <label htmlFor="venue_name" className="block mb-2">
+                <label htmlFor="venue_name" className="block mb-1 text-sm">
                   Venue
                 </label>
                 <input
@@ -183,13 +177,13 @@ const UserBookings = () => {
                   type="text"
                   value={updatedVenueName}
                   onChange={(e) => setUpdatedVenueName(e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-sm"
                   required
                 />
               </div>
 
               <div className="mb-4">
-                <label htmlFor="date" className="block mb-2">
+                <label htmlFor="date" className="block mb-1 text-sm">
                   Date
                 </label>
                 <input
@@ -197,13 +191,13 @@ const UserBookings = () => {
                   type="date"
                   value={updatedDate}
                   onChange={(e) => setUpdatedDate(e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-sm"
                   required
                 />
               </div>
 
               <div className="mb-4">
-                <label htmlFor="time" className="block mb-2">
+                <label htmlFor="time" className="block mb-1 text-sm">
                   Time
                 </label>
                 <input
@@ -211,21 +205,21 @@ const UserBookings = () => {
                   type="time"
                   value={updatedTime}
                   onChange={(e) => setUpdatedTime(e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-sm"
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end space-x-2">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  className="px-4 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   Update
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+                  className="px-4 py-2 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
                 >
                   Cancel
                 </button>
