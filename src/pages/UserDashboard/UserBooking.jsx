@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import supabase from "../../services/supabaseClient";
 
 const UserBookings = () => {
-  const user = useSelector((state) => state.user.profile); 
+  const user = useSelector((state) => state.user.profile);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,7 +20,7 @@ const UserBookings = () => {
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("booking_id, venue_name, date, time, user_id, verified") 
+        .select("booking_id, venue_name, date, time, user_id, verified")
         .eq("user_id", user?.id)
         .order("date", { ascending: true });
 
@@ -71,7 +71,7 @@ const UserBookings = () => {
   // Handle edit of booking
   const handleEdit = (booking) => {
     setIsEditing(true);
-    setCurrentBooking(booking); 
+    setCurrentBooking(booking);
     setUpdatedVenueName(booking.venue_name);
     setUpdatedDate(booking.date);
     setUpdatedTime(booking.time);
@@ -101,7 +101,7 @@ const UserBookings = () => {
       if (error) {
         throw new Error(error.message);
       }
-      
+
       fetchBookings();
 
       setIsEditing(false);
@@ -123,48 +123,49 @@ const UserBookings = () => {
       ) : bookings.length === 0 ? (
         <p>No bookings found.</p>
       ) : (
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="py-2 px-4 border">Venue</th>
-              <th className="py-2 px-4 border">Date</th>
-              <th className="py-2 px-4 border">Time</th>
-              <th className="py-2 px-4 border">Status</th> 
-              <th className="py-2 px-4 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((booking) => (
-              <tr key={booking.booking_id}>
-                <td className="py-2 px-4 border">{booking.venue_name}</td>
-                <td className="py-2 px-4 border">{booking.date}</td>
-                <td className="py-2 px-4 border">{booking.time || "TBD"}</td>
-                <td className="py-2 px-4 border">
-                  {/* Display booking status */}
-                  {booking.verified ? (
-                    <span className="text-green-500 font-semibold">Verified</span>
-                  ) : (
-                    <span className="text-red-500 font-semibold">Not Verified</span>
-                  )}
-                </td>
-                <td className="py-2 px-4 border">
-                  <button
-                    onClick={() => handleEdit(booking)} // Set currentBooking properly
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(booking.booking_id)} // Pass booking_id
-                    className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 ml-2"
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="py-2 px-4 border">Venue</th>
+                <th className="py-2 px-4 border">Date</th>
+                <th className="py-2 px-4 border">Time</th>
+                <th className="py-2 px-4 border">Status</th>
+                <th className="py-2 px-4 border">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bookings.map((booking) => (
+                <tr key={booking.booking_id}>
+                  <td className="py-2 px-4 border">{booking.venue_name}</td>
+                  <td className="py-2 px-4 border">{booking.date}</td>
+                  <td className="py-2 px-4 border">{booking.time || "TBD"}</td>
+                  <td className="py-2 px-4 border">
+                    {booking.verified ? (
+                      <span className="text-green-500 font-semibold">Verified</span>
+                    ) : (
+                      <span className="text-red-500 font-semibold">Not Verified</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-4 border">
+                    <button
+                      onClick={() => handleEdit(booking)}
+                      className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(booking.booking_id)}
+                      className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 ml-2"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Edit Modal/Form */}
