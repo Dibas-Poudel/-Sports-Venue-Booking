@@ -87,7 +87,7 @@ const AdminPanel = () => {
   const handleVerifyBooking = async (bookingId, currentStatus) => {
     const { data, error } = await supabase
       .from('bookings')
-      .update({ verified: !currentStatus }) 
+      .update({ verified: !currentStatus })
       .eq('booking_id', bookingId)
       .select();
 

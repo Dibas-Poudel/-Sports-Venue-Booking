@@ -1,19 +1,18 @@
 import { useState } from "react";
 import supabase from "../services/supabaseClient";
-import { useDispatch, useSelector } from "react-redux";
-import { setUser, setMessage, setLoading } from "../store/slice/user";
+import { useDispatch } from "react-redux";
+import { setUser } from "../store/slice/user";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; 
 
 const Login = () => {
   const dispatch = useDispatch();
-  const navigate=useNavigate ();
-  const message = useSelector((state) => state.user.message); 
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [loading, setLoadingState] = useState(false);  
+  const [loading, setLoadingState] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,7 +21,7 @@ const Login = () => {
   // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
-    dispatch(setLoading()); 
+    setLoadingState(true);
 
     // Attempt Login with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -30,12 +29,12 @@ const Login = () => {
       password: formData.password,
     });
 
+    setLoadingState(false); 
+
     if (error) {
-      setLoadingState(false);  
-      dispatch(setMessage(error.message)); 
+      toast.error(error.message); 
     } else {
-      setLoadingState(false);  
-      dispatch(setMessage("Login successful!")); 
+      toast.success("Login successful!"); 
       dispatch(setUser(data.user));
       navigate("/games");
     }
@@ -45,17 +44,6 @@ const Login = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-
-        {/* Display message from Redux */}
-        {message && (
-          <p
-            className={`text-sm mb-4 ${
-              message.includes("successful") ? "text-green-500" : "text-red-500"
-            }`}
-          >
-            {message}
-          </p>
-        )}
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">

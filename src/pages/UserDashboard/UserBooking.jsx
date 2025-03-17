@@ -12,6 +12,8 @@ const UserBookings = () => {
   const [updatedVenueName, setUpdatedVenueName] = useState("");
   const [updatedDate, setUpdatedDate] = useState("");
   const [updatedTime, setUpdatedTime] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -50,6 +52,7 @@ const UserBookings = () => {
     const isConfirmed = window.confirm("Are you sure you want to delete this booking?");
     if (!isConfirmed) return;
 
+    setDeleting(true);
     try {
       const { error } = await supabase.from("bookings").delete().eq("booking_id", booking_id);
 
@@ -57,9 +60,12 @@ const UserBookings = () => {
         throw new Error(error.message);
       }
 
-      fetchBookings();
+      // Optimistic UI update
+      setBookings(bookings.filter((booking) => booking.booking_id !== booking_id));
+      setDeleting(false);
     } catch (err) {
       setError("Error deleting booking: " + err.message);
+      setDeleting(false);
       console.error("Delete error:", err.message);
     }
   };
@@ -80,6 +86,7 @@ const UserBookings = () => {
       return;
     }
 
+    setUpdating(true);
     const updatedBookingData = {
       venue_name: updatedVenueName,
       date: updatedDate,
@@ -96,11 +103,18 @@ const UserBookings = () => {
         throw new Error(error.message);
       }
 
-      fetchBookings();
+      // Optimistic UI update
+      setBookings(bookings.map((booking) =>
+        booking.booking_id === currentBooking.booking_id
+          ? { ...booking, ...updatedBookingData }
+          : booking
+      ));
       setIsEditing(false);
       setCurrentBooking(null);
+      setUpdating(false);
     } catch (err) {
       setError("Error updating booking: " + err.message);
+      setUpdating(false);
       console.error("Update error:", err.message);
     }
   };
@@ -114,52 +128,52 @@ const UserBookings = () => {
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : bookings.length === 0 ? (
-        <p>No bookings found.</p>
+        <p>No bookings found. Try booking a venue!</p>
       ) : (
         <div className="overflow-x-auto w-full">
-        <table className="min-w-[700px] w-full text-sm sm:text-base border-collapse">
-          <thead>
-            <tr className="bg-gray-100 text-xs sm:text-sm">
-              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Venue</th>
-              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Date</th>
-              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Time</th>
-              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Status</th>
-              <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((booking) => (
-              <tr key={booking.booking_id} className="text-xs sm:text-sm">
-                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.venue_name}</td>
-                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.date}</td>
-                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.time || "TBD"}</td>
-                <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">
-                  {booking.verified ? (
-                    <span className="text-green-500 font-semibold">Verified</span>
-                  ) : (
-                    <span className="text-red-500 font-semibold">Not Verified</span>
-                  )}
-                </td>
-                <td className="py-2 px-3 sm:px-4 border space-x-1 sm:space-x-2 whitespace-nowrap">
-                  <button
-                    onClick={() => handleEdit(booking)}
-                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(booking.booking_id)}
-                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </td>
+          <table className="min-w-[700px] w-full text-sm sm:text-base border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-xs sm:text-sm">
+                <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Venue</th>
+                <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Date</th>
+                <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Time</th>
+                <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Status</th>
+                <th className="py-2 px-3 sm:px-4 border whitespace-nowrap">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
+            </thead>
+            <tbody>
+              {bookings.map((booking) => (
+                <tr key={booking.booking_id} className="text-xs sm:text-sm">
+                  <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.venue_name}</td>
+                  <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.date}</td>
+                  <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">{booking.time || "TBD"}</td>
+                  <td className="py-2 px-3 sm:px-4 border whitespace-nowrap">
+                    {booking.verified ? (
+                      <span className="text-green-500 font-semibold">Verified</span>
+                    ) : (
+                      <span className="text-red-500 font-semibold">Not Verified</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-3 sm:px-4 border space-x-1 sm:space-x-2 whitespace-nowrap">
+                    <button
+                      onClick={() => handleEdit(booking)}
+                      className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(booking.booking_id)}
+                      disabled={deleting}
+                      className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      {deleting ? "Deleting..." : "Delete"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Edit Modal/Form */}
@@ -212,9 +226,10 @@ const UserBookings = () => {
               <div className="flex justify-end space-x-2">
                 <button
                   type="submit"
+                  disabled={updating}
                   className="px-4 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600"
                 >
-                  Update
+                  {updating ? "Updating..." : "Update"}
                 </button>
                 <button
                   type="button"

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../services/supabaseClient';
+import { toast } from 'react-toastify'; 
 
 const PlayStationGames = () => {
   const [playstationGames, setPlaystationGames] = useState([]);
@@ -18,7 +19,7 @@ const PlayStationGames = () => {
 
         setPlaystationGames(data);
       } catch (error) {
-        console.error('Error fetching PlayStation games:', error.message);
+        toast.error('Error fetching PlayStation games: ' + error.message); 
       } finally {
         setLoading(false);
       }
@@ -47,7 +48,7 @@ const PlayStationGames = () => {
                 className="relative group overflow-hidden rounded-lg shadow-lg cursor-pointer bg-gray-800"
               >
                 <img
-                  src={game.image_url || '/images/default.jpg'}
+                  src={game.image_url || '/images/playstatation.jpg'}
                   alt={game.name}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500"
                 />

@@ -2,35 +2,31 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../services/supabaseClient";
 
-
 const BookingPage = () => {
   const { game } = useParams();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");  
+  const [time, setTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
-  
+
   useEffect(() => {
     const fetchUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-  
+
       if (error) {
         console.error("Error fetching user:", error.message);
-        setLoading(false);
+        setError("Error fetching user details.");
         return;
       }
-  
+
       setUser(data?.user);
-      setLoading(false);  
     };
-  
+
     fetchUser();
   }, []);
-
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,13 +51,13 @@ const BookingPage = () => {
           user_id: user.id,
           venue_name: game,
           date,
-          time,  
+          time,
           name,
         },
       ]);
 
     if (error) {
-      setError("Error Creating booking: " + error.message);
+      setError("Error creating booking: " + error.message);
     } else {
       navigate("/dashboard");
     }
@@ -72,10 +68,10 @@ const BookingPage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
       <h1 className="text-4xl font-bold">Booking for {game.replace("-", " ")}</h1>
       <p className="text-lg text-gray-300 mt-4">Complete your booking for {game}.</p>
-      
+
       <form onSubmit={handleSubmit} className="mt-8 p-6 bg-gray-800 rounded-lg">
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        
+
         <label className="block mb-4">
           Name:
           <input
@@ -87,7 +83,7 @@ const BookingPage = () => {
             disabled={loading}
           />
         </label>
-        
+
         <label className="block mb-4">
           Date:
           <input

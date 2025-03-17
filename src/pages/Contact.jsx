@@ -1,36 +1,35 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
+import { toast } from 'react-toastify'; // For better user feedback
 
 const Contact = () => {
- const  serviceId =import.meta.env.VITE_SERVICE_ID;
- const templateId = import.meta.env.VITE_TEMPLATE_ID;
- const publicKey = import.meta.env.VITE_PUBLIC_KEY
-
+  const serviceId = import.meta.env.VITE_SERVICE_ID;
+  const templateId = import.meta.env.VITE_TEMPLATE_ID;
+  const publicKey = import.meta.env.VITE_PUBLIC_KEY;
 
   const form = useRef();
+  const [loading, setLoading] = useState(false);
 
   const sendEmail = (e) => {
     e.preventDefault();
+    setLoading(true);
 
     emailjs
-      .sendForm(
-        serviceId  ,
-        templateId,   
-        form.current,
-        publicKey,
-      )
+      .sendForm(serviceId, templateId, form.current, publicKey)
       .then(
         (result) => {
           console.log(result.text);
-          alert("Message sent successfully!");
+          toast.success("Message sent successfully!"); // Display success toast
         },
         (error) => {
           console.log(error.text);
-          alert("Something went wrong. Please try again.");
+          toast.error("Something went wrong. Please try again."); // Display error toast
         }
-      );
-
-    e.target.reset();
+      )
+      .finally(() => {
+        setLoading(false);
+        form.current.reset(); // Reset the form after submission
+      });
   };
 
   return (
@@ -77,9 +76,10 @@ const Contact = () => {
               ></textarea>
               <button
                 type="submit"
-                className="w-full bg-yellow-500 text-black font-semibold py-3 rounded-lg hover:bg-yellow-400 transition duration-300"
+                className={`w-full bg-yellow-500 text-black font-semibold py-3 rounded-lg hover:bg-yellow-400 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={loading}
               >
-                Send Message
+                {loading ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           </div>

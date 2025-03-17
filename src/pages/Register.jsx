@@ -1,6 +1,7 @@
 import { useState } from "react";
 import supabase from "../services/supabaseClient";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; 
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -8,7 +9,6 @@ const Register = () => {
     password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -19,11 +19,10 @@ const Register = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null); // Reset previous message
 
     // Simple validation
     if (!formData.email || !formData.password) {
-      setMessage("Please fill in both fields.");
+      toast.error("Please fill in both fields.");
       setLoading(false);
       return;
     }
@@ -34,7 +33,7 @@ const Register = () => {
     });
 
     if (error) {
-      setMessage(error.message);
+      toast.error(error.message);
     } else {
       const userId = data.user?.id;
 
@@ -46,9 +45,9 @@ const Register = () => {
         });
 
         if (insertError) {
-          setMessage("Registered but failed inserting user data: " + insertError.message);
+          toast.warning("Registered but failed to insert user data: " + insertError.message);
         } else {
-          setMessage("Registration successful!");
+          toast.success("Registration successful!");
           setTimeout(() => navigate("/login"), 3000);
         }
       }
@@ -61,15 +60,6 @@ const Register = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Register</h2>
-        {message && (
-          <p
-            className={`text-sm mb-4 ${
-              message.includes("successful") ? "text-green-500" : "text-red-500"
-            }`}
-          >
-            {message}
-          </p>
-        )}
 
         <form onSubmit={handleSignup}>
           <div className="mb-4">
