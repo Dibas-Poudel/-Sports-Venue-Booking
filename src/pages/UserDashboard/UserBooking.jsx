@@ -104,7 +104,6 @@ const UserBookings = () => {
             <p><strong>Venue:</strong> {booking.venue_name}</p>
             <p><strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}</p>
             <p><strong>Time:</strong> {booking.time}</p>
-            <p><strong>Total Price:</strong> Rs. {booking.total_price}</p>
             <p><strong>Status:</strong> {booking.verified ? "✅ Verified" : "⌛ Pending"}</p>
 
             <div className="flex gap-4 mt-4">

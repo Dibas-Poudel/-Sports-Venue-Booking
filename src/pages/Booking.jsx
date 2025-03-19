@@ -11,6 +11,7 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
+  const [isAvailable, setIsAvailable] = useState(true); 
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,6 +29,28 @@ const BookingPage = () => {
     fetchUser();
   }, []);
 
+  // Function to check if the venue is available for the selected date and time
+  const checkAvailability = async () => {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("venue_name", game)
+      .eq("date", date)
+      .eq("time", time);
+
+    if (error) {
+      console.error("Error checking availability:", error.message);
+      setError("Error checking availability.");
+      return;
+    }
+
+    if (data.length > 0) {
+      setIsAvailable(false); 
+    } else {
+      setIsAvailable(true);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -38,6 +61,11 @@ const BookingPage = () => {
 
     if (!user) {
       setError("You need to be logged in to book a venue.");
+      return;
+    }
+
+    if (!isAvailable) {
+      setError("This venue is already booked for the selected time.");
       return;
     }
 
@@ -63,6 +91,12 @@ const BookingPage = () => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (date && time) {
+      checkAvailability();
+    }
+  }, [date, time]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
@@ -108,9 +142,14 @@ const BookingPage = () => {
           />
         </label>
 
+        {/* Show availability status */}
+        {!isAvailable && (
+          <p className="text-red-500 mb-4">The selected venue is already booked for this time.</p>
+        )}
+
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isAvailable}
           className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full"
         >
           {loading ? "Booking..." : "Confirm Booking"}
