@@ -25,7 +25,7 @@ const games = [
 
 const Games = () => {
   return (
-    <section className="py-12 bg-gray-900 text-white">
+    <section className="py-12 h-screen bg-gray-900 text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
         <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Explore Our Games</h2>
         <p className="text-base sm:text-lg text-gray-300 mb-10 sm:mb-12">
