@@ -52,10 +52,25 @@ const PlayStationGames = () => {
                   alt={game.name}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500"
                 />
+
+                {/* Content for mobile */}
+                <div className="p-4 lg:hidden">
+                  <h3 className="text-xl font-bold mb-1">{game.name}</h3>
+                  <p className="text-gray-300 text-sm mb-1">{game.description}</p>
+                  <p className="text-white font-semibold mb-3">Price: Rs {game.price}</p>
+                  <Link
+                    to={`/book/${game.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition duration-300"
+                  >
+                    Book Now
+                  </Link>
+                </div>
+
+                {/* Hover effect content for desktop */}
                 <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition duration-300">
-                  <h3 className="text-2xl font-bold mb-4">{game.name}</h3>
-                  <p className="text-gray-300 text-sm mb-4">{game.description}</p>
-                  <p className="text-gray-200 text-lg font-semibold mb-4">Price: Rs{game.price}</p>
+                  <h3 className="text-2xl font-bold mb-2">{game.name}</h3>
+                  <p className="text-gray-300 text-sm mb-2">{game.description}</p>
+                  <p className="text-white font-semibold mb-4">Price: Rs {game.price}</p>
                   <Link
                     to={`/book/${game.name.toLowerCase().replace(/\s+/g, '-')}`}
                     className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition duration-300"
