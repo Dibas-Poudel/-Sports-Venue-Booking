@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import fetchUserProfile from "../features/fetchUserProfile";
 import supabase from "../services/supabaseClient";
+import Spinner from "./Spinner";
 
 const ProtectedAdminRoute = ({ children }) => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ const ProtectedAdminRoute = ({ children }) => {
     checkAdmin();
   }, [navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Spinner/>
 
   return isAdmin ? <>{children}</> : null;//IF Admin show children
 };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../services/supabaseClient';
 import { toast } from 'react-toastify';
+import Spinner from '../components/Spinner';
 
 const IndoorGames = () => {
   const [indoorSports, setIndoorSports] = useState([]);
@@ -36,7 +37,7 @@ const IndoorGames = () => {
         </p>
 
         {loading ? (
-          <div className="text-center text-gray-400 text-lg">Loading...</div>
+           <Spinner/>
         ) : indoorSports.length === 0 ? (
           <div className="text-center text-gray-400 text-lg">No indoor sports available.</div>
         ) : (

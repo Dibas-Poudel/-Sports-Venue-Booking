@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import supabase from "../../services/supabaseClient";
+import Spinner from "../../components/Spinner";
 
 const UserBookings = () => {
   const user = useSelector((state) => state.user.profile);
@@ -86,7 +87,7 @@ const UserBookings = () => {
     }
   };
 
-  if (loading) return <div className="text-white">Loading bookings...</div>;
+  if (loading) return <Spinner/>
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (

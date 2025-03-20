@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import supabase from '../../services/supabaseClient';
+import Spinner from '../../components/Spinner';
 
 const AdminPanel = () => {
   const [games, setGames] = useState([]);
@@ -103,7 +104,7 @@ const AdminPanel = () => {
   };
 
   if (loadingGames || loadingBookings) {
-    return <div className="text-white">Loading...</div>;
+    return <Spinner/>
   }
 
   return (
