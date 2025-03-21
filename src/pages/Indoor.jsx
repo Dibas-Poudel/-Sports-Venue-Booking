@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import supabase from '../services/supabaseClient';
-import { toast } from 'react-toastify';
-import Spinner from '../components/Spinner';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import supabase from "../services/supabaseClient";
+import { toast } from "react-toastify";
+import Spinner from "../components/Spinner";
 
 const IndoorGames = () => {
   const [indoorSports, setIndoorSports] = useState([]);
@@ -12,14 +12,14 @@ const IndoorGames = () => {
     const fetchIndoorSports = async () => {
       try {
         const { data, error } = await supabase
-          .from('sports_venues')
-          .select('*')
-          .eq('type', 'Indoor');
+          .from("sports_venues")
+          .select("*")
+          .eq("type", "Indoor");
 
         if (error) throw error;
         setIndoorSports(data);
       } catch (error) {
-        toast.error('Error fetching indoor sports: ' + error.message);
+        toast.error("Error fetching indoor sports: " + error.message);
       } finally {
         setLoading(false);
       }
@@ -37,9 +37,11 @@ const IndoorGames = () => {
         </p>
 
         {loading ? (
-           <Spinner/>
+          <Spinner />
         ) : indoorSports.length === 0 ? (
-          <div className="text-center text-gray-400 text-lg">No indoor sports available.</div>
+          <div className="text-center text-gray-400 text-lg">
+            No indoor sports available.
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {indoorSports.map((sport) => (
@@ -48,34 +50,42 @@ const IndoorGames = () => {
                 className="relative group overflow-hidden rounded-lg shadow-lg bg-gray-800"
               >
                 <img
-                  src={sport.image_url || '/images/snooker.jpg'}
+                  src={sport.image_url || "/images/snooker.jpg"}
                   alt={sport.name}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500"
                 />
-                
+
                 {/* Content for mobile */}
                 <div className="p-4 lg:hidden">
                   <h3 className="text-xl font-bold mb-1">{sport.name}</h3>
-                  <p className="text-gray-300 text-sm mb-1">{sport.description}</p>
-                  <p className="text-white font-semibold mb-3">Price: Rs {sport.price}</p>
+                  <p className="text-gray-300 text-sm mb-1">
+                    {sport.description}
+                  </p>
+                  <p className="text-white font-semibold mb-3">
+                    Price: Rs {sport.price}
+                  </p>
                   <Link
-                    to={`/book/${sport.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition duration-300"
+                    to={`/sports/${sport.id}`} // or `/sports/${sport.name.toLowerCase().replace(/\s+/g, '-')}`
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition duration-300"
                   >
-                    Book Now
+                    View
                   </Link>
                 </div>
 
                 {/* Hover effect content for desktop */}
                 <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition duration-300">
                   <h3 className="text-2xl font-bold mb-2">{sport.name}</h3>
-                  <p className="text-gray-300 text-sm mb-2">{sport.description}</p>
-                  <p className="text-white font-semibold mb-4">Price: Rs {sport.price}</p>
-                  <Link
-                    to={`/book/${sport.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition duration-300"
+                  <p className="text-gray-300 text-sm mb-2">
+                    {sport.description}
+                  </p>
+                  <p className="text-white font-semibold mb-4">
+                    Price: Rs {sport.price}
+                  </p>
+                   <Link
+                   to={`/sports/${sport.id}`}
+                     className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition duration-300"
                   >
-                    Book Now
+                    View
                   </Link>
                 </div>
               </div>

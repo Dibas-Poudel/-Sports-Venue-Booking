@@ -25,6 +25,8 @@ const AdminPannel = React.lazy(() => import('./pages/Admin Pannel/AdminPannel.js
 // Import protected routes
 import ProtectedRoute from './components/Protected.jsx';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute.jsx';
+import Spinner from './components/Spinner.jsx';
+import SingleSportDetail from './pages/SingleSportDetail.jsx';
 
 const router = createBrowserRouter([
   {
@@ -33,47 +35,52 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Suspense fallback={<div>Loading...</div>}><Home /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><Home /></Suspense>
       },
       {
         path: '/contact',
-        element: <Suspense fallback={<div>Loading...</div>}><Contact /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><Contact /></Suspense>
       },
       {
         path: '/register',
-        element: <Suspense fallback={<div>Loading...</div>}><Register /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><Register /></Suspense>
       },
       {
         path: '/login',
-        element: <Suspense fallback={<div>Loading...</div>}><Login /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><Login /></Suspense>
       },
       {
         path: 'games/indoor',
-        element: <Suspense fallback={<div>Loading...</div>}><Indoor /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><Indoor /></Suspense>
       },
       {
         path: 'games/outdoor',
-        element: <Suspense fallback={<div>Loading...</div>}><Outdoor /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><Outdoor /></Suspense>
       },
       {
         path: 'games/playstation',
-        element: <Suspense fallback={<div>Loading...</div>}><PlayStation /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><PlayStation /></Suspense>
       },
       {
         path: '/games',
-        element: <Suspense fallback={<div>Loading...</div>}><Games /></Suspense>
+        element: <Suspense fallback={<Spinner/>}><Games /></Suspense>
       },
       {
         path: '/book/:game',
-        element: <ProtectedRoute><Suspense fallback={<div>Loading...</div>}><BookingPage /></Suspense></ProtectedRoute>
+        element: <ProtectedRoute><Suspense fallback={<Spinner/>}><BookingPage /></Suspense></ProtectedRoute>
       },
       {
         path: '/dashboard',
-        element: <ProtectedRoute><Suspense fallback={<div>Loading...</div>}><Dashboard /></Suspense></ProtectedRoute>
+        element: <ProtectedRoute><Suspense fallback={<Spinner/>}><Dashboard /></Suspense></ProtectedRoute>
       },
       {
         path: '/admin',
-        element: <ProtectedAdminRoute><Suspense fallback={<div>Loading...</div>}><AdminPannel /></Suspense></ProtectedAdminRoute>
+        element: <ProtectedAdminRoute><Suspense fallback={<Spinner/>}><AdminPannel /></Suspense></ProtectedAdminRoute>
+      },
+      {
+         path:"/sports/:id",
+          element:<Suspense fallback={<Spinner/>}><SingleSportDetail /></Suspense>
+
       }
     ]
   }

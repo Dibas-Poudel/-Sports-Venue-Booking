@@ -3,16 +3,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../services/supabaseClient";
 
 const BookingPage = () => {
-  const { game } = useParams();
+  const { game } = useParams(); // game = venue ID
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
-  const [isAvailable, setIsAvailable] = useState(true); 
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [venueName, setVenueName] = useState("");
 
+  // Fetch logged-in user
   useEffect(() => {
     const fetchUser = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -29,12 +32,31 @@ const BookingPage = () => {
     fetchUser();
   }, []);
 
-  // Function to check if the venue is available for the selected date and time
+  // Fetch venue name using venue ID (game)
+  useEffect(() => {
+    const fetchVenueName = async () => {
+      const { data, error } = await supabase
+        .from("sports_venues")
+        .select("name")
+        .eq("id", game)
+        .single();
+
+      if (error) {
+        console.error("Error fetching venue name:", error.message);
+      } else {
+        setVenueName(data?.name);
+      }
+    };
+
+    if (game) fetchVenueName();
+  }, [game]);
+
+  // Check if venue is available for selected date and time
   const checkAvailability = async () => {
     const { data, error } = await supabase
       .from("bookings")
       .select("*")
-      .eq("venue_name", game)
+      .eq("venue_name", venueName)
       .eq("date", date)
       .eq("time", time);
 
@@ -44,12 +66,14 @@ const BookingPage = () => {
       return;
     }
 
-    if (data.length > 0) {
-      setIsAvailable(false); 
-    } else {
-      setIsAvailable(true);
-    }
+    setIsAvailable(data.length === 0);
   };
+
+  useEffect(() => {
+    if (date && time && venueName) {
+      checkAvailability();
+    }
+  }, [date, time, venueName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,12 +82,6 @@ const BookingPage = () => {
       setError("Please fill in all fields.");
       return;
     }
-
-    if (!user) {
-      setError("You need to be logged in to book a venue.");
-      return;
-    }
-
     if (!isAvailable) {
       setError("This venue is already booked for the selected time.");
       return;
@@ -72,85 +90,98 @@ const BookingPage = () => {
     setLoading(true);
     setError("");
 
-    const { data, error } = await supabase
+    const { error: insertError } = await supabase
       .from("bookings")
       .insert([
         {
           user_id: user.id,
-          venue_name: game,
+          venue_name: venueName,
           date,
           time,
           name,
         },
       ]);
 
-    if (error) {
-      setError("Error creating booking: " + error.message);
+    if (insertError) {
+      setError("Error creating booking: " + insertError.message);
     } else {
       navigate("/dashboard");
     }
+
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (date && time) {
-      checkAvailability();
-    }
-  }, [date, time]);
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
-      <h1 className="text-4xl font-bold">Booking for {game.replace("-", " ")}</h1>
-      <p className="text-lg text-gray-300 mt-4">Complete your booking for {game}.</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-6 py-12">
+      {!venueName ? (
+        <h2 className="text-2xl font-semibold mb-4 text-center text-gray-400">Loading venue details...</h2>
+      ) : (
+        <>
+          <h2 className="text-4xl font-bold mb-4 text-center text-gray-100">
+            Book Your Venue: {venueName}
+          </h2>
+          <p className="text-sm text-gray-300 text-center mb-6">
+            Please fill out the form below to confirm your booking for {venueName}.
+          </p>
+        </>
+      )}
 
-      <form onSubmit={handleSubmit} className="mt-8 p-6 bg-gray-800 rounded-lg">
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-lg p-8 bg-gray-800 rounded-xl shadow-xl space-y-6"
+      >
+        {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
-        <label className="block mb-4">
-          Name:
+        <div>
+          <label className="block text-gray-300 mb-2">Your Name:</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 mt-1 rounded bg-gray-700 text-white"
+            className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
             disabled={loading}
           />
-        </label>
+        </div>
 
-        <label className="block mb-4">
-          Date:
+        <div>
+          <label className="block text-gray-300 mb-2">Date:</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full p-2 mt-1 rounded bg-gray-700 text-white"
+            className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
             disabled={loading}
           />
-        </label>
+        </div>
 
-        <label className="block mb-4">
-          Time:
+        <div>
+          <label className="block text-gray-300 mb-2">Time:</label>
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="w-full p-2 mt-1 rounded bg-gray-700 text-white"
+            className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
             disabled={loading}
           />
-        </label>
+        </div>
 
-        {/* Show availability status */}
         {!isAvailable && (
-          <p className="text-red-500 mb-4">The selected venue is already booked for this time.</p>
+          <p className="text-red-500 text-center mb-4">
+            The selected venue is already booked for this time.
+          </p>
         )}
 
         <button
           type="submit"
           disabled={loading || !isAvailable}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full"
+          className={`w-full py-3 rounded-lg font-semibold text-white ${
+            loading || !isAvailable
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
           {loading ? "Booking..." : "Confirm Booking"}
         </button>
