@@ -264,6 +264,7 @@ const AdminPanel = () => {
           </div>
         ))}
       </div>
+      {/*dsiplay charts and graphs*/};
       <RevenueAnalytics/>
     </div>
   );

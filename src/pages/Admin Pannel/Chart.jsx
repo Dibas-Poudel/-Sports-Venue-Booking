@@ -9,7 +9,7 @@ const RevenueAnalytics = () => {
     fetchBookingVolumeData();
   }, []);
 
-  // Fetch booking volume data
+  // Fetch booking volume Data
   const fetchBookingVolumeData = async () => {
     const { data, error } = await supabase
       .from("bookings")
