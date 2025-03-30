@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import supabase from "../services/supabaseClient";
 import Spinner from "../components/Spinner";
 import Reviews from "./Reviews";
+import { toast } from "react-toastify";
 
 const SingleSportDetail = () => {
   const { id } = useParams();
@@ -56,7 +57,7 @@ const SingleSportDetail = () => {
   // Add venue to wishlist
   const addToWishlist = async () => {
     if (!user) {
-      alert("Please log in to add to wishlist.");
+     toast.warn("Please log in to add to wishlist.");
       return;
     }
 

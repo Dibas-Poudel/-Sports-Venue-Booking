@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../services/supabaseClient';
+import { toast } from 'react-toastify';
 
 const Reviews = ({ venueId, user }) => {
   const [reviews, setReviews] = useState([]);
@@ -25,7 +26,8 @@ const Reviews = ({ venueId, user }) => {
   // Submit Review
   const handleSubmitReview = async (e) => {
     e.preventDefault();
-    if (!user) return alert('You must be logged in to add a review');
+    if (!user) 
+      { toast.warn("You must be logged in to leave a review.");}
 
     if (editingReviewId) {
       // Update review

@@ -21,12 +21,12 @@ const PlayStation = React.lazy(() => import('./pages/PlayStation'));
 const BookingPage = React.lazy(() => import('./pages/Booking.jsx'));
 const Dashboard = React.lazy(() => import('./pages/UserDashboard/Dashboard.jsx'));
 const AdminPannel = React.lazy(() => import('./pages/Admin Pannel/AdminPannel.jsx'));
+const SingleSportDetail= React.lazy(() => import('./pages/SingleSportDetail.jsx'));
 
 // Import protected routes
 import ProtectedRoute from './components/Protected.jsx';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute.jsx';
 import Spinner from './components/Spinner.jsx';
-import SingleSportDetail from './pages/SingleSportDetail.jsx';
 
 const router = createBrowserRouter([
   {
@@ -90,7 +90,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
       <RouterProvider router={router} />
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-right" autoClose={2000} />
     </Provider>
   </StrictMode>
 );
