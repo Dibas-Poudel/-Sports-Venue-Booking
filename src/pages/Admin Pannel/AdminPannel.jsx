@@ -18,7 +18,11 @@ const AdminPanel = () => {
 
   // Initial data fetch - only runs when needed
   useEffect(() => {
-    if (games.length === 0 && bookings.length === 0 && status.fetch === 'idle') {
+    if (
+      games.length === 0 &&
+      bookings.length === 0 &&
+      status.fetch === "idle"
+    ) {
       dispatch(fetchAdminData());
     }
   }, [dispatch, games.length, bookings.length, status.fetch]);
@@ -26,7 +30,7 @@ const AdminPanel = () => {
   // Status reset effect
   useEffect(() => {
     const timers = [];
-    
+
     Object.keys(status).forEach((action) => {
       if (status[action] === "succeeded" || status[action] === "failed") {
         const timer = setTimeout(() => {
@@ -36,7 +40,7 @@ const AdminPanel = () => {
       }
     });
 
-    return () => timers.forEach(timer => clearTimeout(timer));
+    return () => timers.forEach((timer) => clearTimeout(timer));
   }, [status, dispatch]);
 
   const handleAddGame = () => {
@@ -62,10 +66,8 @@ const AdminPanel = () => {
     }
   };
 
-  const handleDeleteGame = (gameId) => {
-    if (window.confirm("Are you sure you want to delete this game?")) {
-      dispatch(deleteGame(gameId));
-    }
+  const handleDeleteGame = (gameId, gameType) => {
+    dispatch(deleteGame(gameId, gameType));
   };
 
   const handleVerifyBooking = (bookingId, currentStatus) => {
@@ -80,7 +82,6 @@ const AdminPanel = () => {
   const handleDeleteBooking = (bookingId) => {
     if (window.confirm("Are you sure you want to delete this booking?")) {
       dispatch(deleteBooking(bookingId));
-      
     }
   };
 
@@ -138,7 +139,9 @@ const AdminPanel = () => {
           placeholder="Game Description"
           value={newGame.description}
           onChange={(e) =>
-            dispatch(adminActions.updateNewGame({ description: e.target.value }))
+            dispatch(
+              adminActions.updateNewGame({ description: e.target.value })
+            )
           }
           className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
           disabled={isProcessing}
@@ -207,15 +210,10 @@ const AdminPanel = () => {
                 Edit
               </button>
               <button
-                onClick={() => handleDeleteGame(game.id)}
-                disabled={isProcessing}
-                className={`bg-red-600 text-white px-4 py-2 rounded-md ${
-                  isProcessing
-                    ? "opacity-70 cursor-not-allowed"
-                    : "hover:bg-red-700"
-                }`}
+                onClick={() => handleDeleteGame(game.id, game.type)} 
+                className="bg-red-500 text-white px-3 py-1 rounded"
               >
-                {status.delete === "loading" ? "Deleting..." : "Delete"}
+                Delete
               </button>
             </div>
           </div>

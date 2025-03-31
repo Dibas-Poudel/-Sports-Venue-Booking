@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import supabase from '../../services/supabaseClient';
 import { toast } from 'react-toastify';
+import { fetchIndoorSports, fetchOutdoorSports, fetchPlaystationSports } from './sportsvenue';
 
 const initialState = {
   games: [],
@@ -223,6 +224,15 @@ export const addGame = (gameData) => async (dispatch) => {
 
     if (error) throw error;
     dispatch(adminActions.addSuccess(data[0]));
+
+    if (gameData.type === 'Indoor') {
+      dispatch(fetchIndoorSports());
+    } else if (gameData.type === 'Outdoor') {
+      dispatch(fetchOutdoorSports());
+    } else if (gameData.type === 'PlayStation') {
+      dispatch(fetchPlaystationSports());
+    }
+
     toast.success('Game added successfully!');
   } catch (error) {
     dispatch(adminActions.addFailure(error.message));
@@ -241,6 +251,15 @@ export const updateGame = ({ gameId, gameData }) => async (dispatch) => {
 
     if (error) throw error;
     dispatch(adminActions.updateSuccess(data[0]));
+
+    if (gameData.type === 'Indoor') {
+      dispatch(fetchIndoorSports());
+    } else if (gameData.type === 'Outdoor') {
+      dispatch(fetchOutdoorSports());
+    } else if (gameData.type === 'PlayStation') {
+      dispatch(fetchPlaystationSports());
+    }
+
     toast.success('Game updated successfully!');
   } catch (error) {
     dispatch(adminActions.updateFailure(error.message));
@@ -248,7 +267,7 @@ export const updateGame = ({ gameId, gameData }) => async (dispatch) => {
   }
 };
 
-export const deleteGame = (gameId) => async (dispatch) => {
+export const deleteGame = (gameId, gameType) => async (dispatch) => {
   dispatch(adminActions.deleteStart());
   try {
     const { error } = await supabase
@@ -258,6 +277,15 @@ export const deleteGame = (gameId) => async (dispatch) => {
 
     if (error) throw error;
     dispatch(adminActions.deleteSuccess(gameId));
+
+    if (gameType === 'Indoor') {
+      dispatch(fetchIndoorSports());
+    } else if (gameType === 'Outdoor') {
+      dispatch(fetchOutdoorSports());
+    } else if (gameType === 'PlayStation') {
+      dispatch(fetchPlaystationSports());
+    }
+
     toast.success('Game deleted successfully!');
   } catch (error) {
     dispatch(adminActions.deleteFailure(error.message));

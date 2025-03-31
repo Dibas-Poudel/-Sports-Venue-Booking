@@ -39,6 +39,7 @@ export function fetchIndoorSports() {
   };
 }
 
+
 export function fetchPlaystationSports() {
   return async function fetchPlaystationSportsThunk(dispatch) {
     dispatch(sportsVenueActions.fetchPlaystationStart());
