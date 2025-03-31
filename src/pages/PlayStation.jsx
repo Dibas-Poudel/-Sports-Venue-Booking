@@ -42,49 +42,31 @@ const PlayStationGames = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {playstationSports.map((sport) => (
-              <div
+              <Link
+                to={`/sports/${sport.id}`}
                 key={sport.id}
-                className="relative group overflow-hidden rounded-lg shadow-lg bg-gray-800"
+                className="block relative group overflow-hidden rounded-lg shadow-lg bg-gray-800 hover:bg-gray-700 transition duration-300"
               >
                 <img
                   src={sport.image_url || "/images/playstatation.jpg"}
                   alt={sport.name}
-                  className="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500"
+                  className="w-full h-64 object-cover"
                 />
-                {/* Content for mobile */}
-                <div className="p-4 lg:hidden">
+                <div className="p-4">
                   <h3 className="text-xl font-bold mb-1">{sport.name}</h3>
-                  <p className="text-gray-300 text-sm mb-1">
+                  <p className="text-gray-300 text-sm mb-1 line-clamp-2">
                     {sport.description}
                   </p>
-                  <p className="text-white font-semibold mb-3">
+                  <p className="text-white font-semibold">
                     Price: Rs {sport.price}
                   </p>
-                  <Link
-                    to={`/sports/${sport.id}`}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full transition duration-300"
-                  >
-                    View
-                  </Link>
+                  <div className="mt-3">
+                    <span className="inline-block px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full transition duration-300">
+                      View
+                    </span>
+                  </div>
                 </div>
-
-                {/* Hover effect content for desktop */}
-                <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center p-6 opacity-0 group-hover:opacity-100 transition duration-300">
-                  <h3 className="text-2xl font-bold mb-2">{sport.name}</h3>
-                  <p className="text-gray-300 text-sm mb-2">
-                    {sport.description}
-                  </p>
-                  <p className="text-white font-semibold mb-4">
-                    Price: Rs {sport.price}
-                  </p>
-                  <Link
-                    to={`/sports/${sport.id}`}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full transition duration-300"
-                  >
-                    View
-                  </Link>
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
