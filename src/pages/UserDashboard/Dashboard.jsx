@@ -1,74 +1,71 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import UserBookings from './UserBooking';
 import Spinner from '../../components/Spinner';
-import supabase from '../../services/supabaseClient';
 import { toast } from 'react-toastify';
+import { 
+  fetchWishlist, 
+  addToWishlist, 
+  removeFromWishlist,
+  wishlistActions
+} from '../../store/slice/wishlist';
 
 const Dashboard = () => {
-  const user = useSelector((state) => state.user.profile);
-  const [wishlist, setWishlist] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user.profile);
+  const { 
+    items: wishlist, 
+    loading,
+    addStatus,
+    removeStatus,
+    fetchStatus 
+  } = useSelector((state) => state.wishlist);
+  
+  const [processingId, setProcessingId] = useState(null);
 
   // Fetch wishlist items for the logged-in user
   useEffect(() => {
-    const fetchWishlist = async () => {
-      if (!user) return;
-      
-      const { data, error } = await supabase
-        .from('wishlist')
-        .select('*, sports_venues(*)')
-        .eq('user_id', user.id);
-
-      if (!error) {
-        setWishlist(data);
-      }
-      setLoading(false);
-    };
-
-    fetchWishlist();
-  }, [user]);
+    if (user?.id && fetchStatus === 'idle') {
+      dispatch(fetchWishlist(user.id));
+    }
+  }, [user?.id, dispatch, fetchStatus]);
 
   // Handle adding/removing items to/from the wishlist
   const handleWishlistToggle = async (venueId) => {
     if (!user) {
-      return toast.error("Please log in to add to wishlist");
+      toast.error("Please log in to modify wishlist");
+      return;
     }
 
-    const existingItem = wishlist.find(item => item.venue_id === venueId);
-    
-    if (existingItem) {
-      // Remove from wishlist
-      const { error } = await supabase
-        .from('wishlist')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('venue_id', venueId);
-      
-      if (!error) {
-        setWishlist(wishlist.filter(item => item.venue_id !== venueId));
-        toast.success("Removed from wishlist");
-      }
-    } else {
-      // Add to wishlist
-      const { error } = await supabase
-        .from('wishlist')
-        .upsert({ user_id: user.id, venue_id: venueId });
+    setProcessingId(venueId); 
 
-      if (!error) {
-        setWishlist([...wishlist, { venue_id: venueId }]);
-        toast.success("Added to wishlist");
-      }
+    const isWishlisted = wishlist.some(item => item.venue_id === venueId);
+    if (isWishlisted) {
+      dispatch(removeFromWishlist({ userId: user.id, venueId }));
+    } else {
+      dispatch(addToWishlist({ userId: user.id, venueId }));
     }
   };
+
+  // Reset status after operations
+  useEffect(() => {
+    if (addStatus === 'succeeded' || addStatus === 'failed') {
+      dispatch(wishlistActions.resetAddStatus());
+      setProcessingId(null); 
+    }
+    if (removeStatus === 'succeeded' || removeStatus === 'failed') {
+      dispatch(wishlistActions.resetRemoveStatus());
+      setProcessingId(null);
+    }
+  }, [addStatus, removeStatus, dispatch]);
 
   const handleBookNow = () => {
-    navigate(`/games`);
+    navigate('/games');
   };
 
-  if (loading) return <Spinner />;
+  if (loading && fetchStatus === 'loading') return <Spinner />;
   if (!user) {
     return (
       <p className="text-center text-lg text-white bg-gray-800 p-4 rounded-lg mt-6">
@@ -116,11 +113,20 @@ const Dashboard = () => {
 
                 <button
                   onClick={() => handleWishlistToggle(venue_id)}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                  disabled={processingId === venue_id} // Only disable clicked button
+                  className={`px-4 py-2 ${
+                    wishlist.some(item => item.venue_id === venue_id)
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-green-600 hover:bg-green-700'
+                  } text-white rounded-lg ${
+                    processingId === venue_id ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
                 >
-                  {wishlist.some(item => item.venue_id === venue_id)
-                    ? 'Remove from Wishlist'
-                    : 'Add to Wishlist'}
+                  {processingId === venue_id
+                    ? 'Processing...'
+                    : wishlist.some(item => item.venue_id === venue_id)
+                      ? 'Remove from Wishlist'
+                      : 'Add to Wishlist'}
                 </button>
               </div>
             ))

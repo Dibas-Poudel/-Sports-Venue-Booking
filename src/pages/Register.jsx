@@ -1,59 +1,34 @@
-import { useState } from "react";
-import supabase from "../services/supabaseClient";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { register } from "../store/slice/user"; 
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; 
 
 const Register = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { registerStatus, loading } = useSelector(state => state.user);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (registerStatus === 'succeeded') {
+      setTimeout(() => navigate("/login"), 3000);
+    }
+  }, [registerStatus, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle signup form submission
   const handleSignup = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Simple validation
-    if (!formData.email || !formData.password) {
-      toast.error("Please fill in both fields.");
-      setLoading(false);
-      return;
+    try {
+      await dispatch(register(formData)); 
+    } catch (error) {
+      console.error("Registration error:", error);
     }
-
-    const { data, error } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-    });
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      const userId = data.user?.id;
-
-      if (userId) {
-        const { error: insertError } = await supabase.from("user").insert({
-          id: userId,
-          email: formData.email,
-          role: "user",
-        });
-
-        if (insertError) {
-          toast.warning("Registered but failed to insert user data: " + insertError.message);
-        } else {
-          toast.success("Registration successful!");
-          setTimeout(() => navigate("/login"), 3000);
-        }
-      }
-    }
-
-    setLoading(false);
   };
 
   return (

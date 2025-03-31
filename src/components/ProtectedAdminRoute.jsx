@@ -1,45 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import fetchUserProfile from "../features/fetchUserProfile";
-import supabase from "../services/supabaseClient";
 import Spinner from "./Spinner";
 
 const ProtectedAdminRoute = ({ children }) => {
+  const { profile, role, loading } = useSelector((state) => state.user);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
+    if (!profile) {
+      navigate("/login");
+    } else if (role !== "admin") {
+      navigate("/");
+    }
+  }, [profile, role, navigate]);
 
-        if (error || !user) {
-          navigate("/login");
-          return;
-        }
-
-        const profile = await fetchUserProfile(user.id);
-
-        if (profile?.role === "admin") {
-          setIsAdmin(true);
-        } else {
-          navigate("/login");
-        }
-      } catch (err) {
-        console.error("Error in admin check:", err.message);
-        navigate("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAdmin();
-  }, [navigate]);
-
-  if (loading) return <Spinner/>
-
-  return isAdmin ? <>{children}</> : null;//IF Admin show children
+  if (loading) return <Spinner />;
+  return profile && role === "admin" ? children : null;
 };
 
 export default ProtectedAdminRoute;

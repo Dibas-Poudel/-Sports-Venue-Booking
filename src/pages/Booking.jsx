@@ -1,120 +1,88 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import supabase from "../services/supabaseClient";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { 
+  fetchVenueName, 
+  checkAvailability, 
+  createBooking, 
+  bookingActions
+} from "../store/slice/booking";
 
 const BookingPage = () => {
-  const { game } = useParams(); // game = venue ID
+  const { game } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { 
+    venueName, 
+    isAvailable, 
+    loading, 
+    error,
+    status 
+  } = useSelector((state) => state.booking);
+  const user = useSelector((state) => state.user.profile);
 
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [user, setUser] = useState(null);
-  const [isAvailable, setIsAvailable] = useState(true);
-  const [venueName, setVenueName] = useState("");
 
-  // Fetch logged-in user
+  // Fetch venue name
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error("Error fetching user:", error.message);
-        setError("Error fetching user details.");
-        return;
-      }
-
-      setUser(data?.user);
-    };
-
-    fetchUser();
-  }, []);
-
-  // Fetch venue name using venue ID (game)
-  useEffect(() => {
-    const fetchVenueName = async () => {
-      const { data, error } = await supabase
-        .from("sports_venues")
-        .select("name")
-        .eq("id", game)
-        .single();
-
-      if (error) {
-        console.error("Error fetching venue name:", error.message);
-      } else {
-        setVenueName(data?.name);
-      }
-    };
-
-    if (game) fetchVenueName();
-  }, [game]);
-
-  // Check if venue is available for selected date and time
-  const checkAvailability = async () => {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("venue_name", venueName)
-      .eq("date", date)
-      .eq("time", time);
-
-    if (error) {
-      console.error("Error checking availability:", error.message);
-      setError("Error checking availability.");
-      return;
+    if (game && status.fetchVenueName === 'idle') {
+      dispatch(fetchVenueName(game));
     }
+  }, [game, dispatch, status.fetchVenueName]);
 
-    setIsAvailable(data.length === 0);
-  };
-
+  // Check availability when date/time changes
   useEffect(() => {
-    if (date && time && venueName) {
-      checkAvailability();
+    if (date && time && venueName && status.checkAvailability === 'idle') {
+      dispatch(checkAvailability({ venueName, date, time }));
     }
-  }, [date, time, venueName]);
+  }, [date, time, venueName, dispatch, status.checkAvailability]);
+
+  // Reset status after operations
+  useEffect(() => {
+    if (status.create === 'succeeded') {
+      setTimeout(() => dispatch(bookingActions.resetStatus('create')), 1000);
+      navigate("/dashboard");
+    }
+  }, [status.create, dispatch, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!name || !date || !time) {
-      setError("Please fill in all fields.");
+      toast.error("Please fill in all fields.");
       return;
     }
     if (!isAvailable) {
-      setError("This venue is already booked for the selected time.");
+      toast.error("This venue is already booked for the selected time.");
+      return;
+    }
+    if (!user) {
+      toast.error("Please log in to make a booking.");
       return;
     }
 
-    setLoading(true);
-    setError("");
-
-    const { error: insertError } = await supabase
-      .from("bookings")
-      .insert([
-        {
-          user_id: user.id,
-          venue_name: venueName,
-          date,
-          time,
-          name,
-        },
-      ]);
-
-    if (insertError) {
-      setError("Error creating booking: " + insertError.message);
-    } else {
-      navigate("/dashboard");
+    try {
+      await dispatch(createBooking({
+        userId: user.id,
+        venueName,
+        date,
+        time,
+        name
+      })).unwrap();
+    } catch (error) {
+      console.error("Booking error:", error);
     }
-
-    setLoading(false);
   };
+
+  const isLoading = loading || status.fetchVenueName === 'loading';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-6 py-12">
-      {!venueName ? (
-        <h2 className="text-2xl font-semibold mb-4 text-center text-gray-400">Loading venue details...</h2>
+      {isLoading ? (
+        <h2 className="text-2xl font-semibold mb-4 text-center text-gray-400">Loading...</h2>
       ) : (
         <>
           <h2 className="text-4xl font-bold mb-4 text-center text-gray-100">
@@ -140,7 +108,7 @@ const BookingPage = () => {
             onChange={(e) => setName(e.target.value)}
             className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
-            disabled={loading}
+            disabled={status.create === 'loading'}
           />
         </div>
 
@@ -152,7 +120,8 @@ const BookingPage = () => {
             onChange={(e) => setDate(e.target.value)}
             className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
-            disabled={loading}
+            disabled={status.create === 'loading'}
+            min={new Date().toISOString().split('T')[0]}
           />
         </div>
 
@@ -164,11 +133,11 @@ const BookingPage = () => {
             onChange={(e) => setTime(e.target.value)}
             className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
-            disabled={loading}
+            disabled={status.create === 'loading'}
           />
         </div>
 
-        {!isAvailable && (
+        {date && time && !isAvailable && (
           <p className="text-red-500 text-center mb-4">
             The selected venue is already booked for this time.
           </p>
@@ -176,14 +145,14 @@ const BookingPage = () => {
 
         <button
           type="submit"
-          disabled={loading || !isAvailable}
+          disabled={status.create === 'loading' || !isAvailable}
           className={`w-full py-3 rounded-lg font-semibold text-white ${
-            loading || !isAvailable
+            status.create === 'loading' || !isAvailable
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {loading ? "Booking..." : "Confirm Booking"}
+          {status.create === 'loading' ? "Processing..." : "Confirm Booking"}
         </button>
       </form>
     </div>

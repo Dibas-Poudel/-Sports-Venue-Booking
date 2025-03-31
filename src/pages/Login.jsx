@@ -1,9 +1,8 @@
-import { useState } from "react";
-import supabase from "../services/supabaseClient";
-import { useDispatch } from "react-redux";
-import { setUser } from "../store/slice/user";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { login, resetLoginStatus } from "../store/slice/user"; 
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; 
+import { toast } from "react-toastify";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -12,34 +11,27 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const [loading, setLoadingState] = useState(false);
+  
+  // Get login status from Redux store
+  const { loginStatus, loading } = useSelector(state => state.user);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle login
-  const handleLogin = async (e) => {
+  const  handleLogin = async (e) => {
     e.preventDefault();
-    setLoadingState(true);
-
-    // Attempt Login with Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: formData.email,
-      password: formData.password,
-    });
-
-    setLoadingState(false); 
-
-    if (error) {
-      toast.error(error.message); 
-    } else {
-      toast.success("Login successful!"); 
-      dispatch(setUser(data.user));
-      navigate("/games");
-    }
+   await  dispatch(login(formData)); 
   };
-
+  
+   useEffect(() => {
+    if (loginStatus === 'succeeded') {
+      toast.success("Login successful!");
+      navigate("/games");
+      dispatch(resetLoginStatus());
+    }
+  }, [loginStatus, navigate]);
+  
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">

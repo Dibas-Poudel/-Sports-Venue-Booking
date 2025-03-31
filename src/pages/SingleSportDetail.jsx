@@ -1,149 +1,91 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import supabase from "../services/supabaseClient";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchSingleSport } from "../store/slice/sportsvenue";
+import { fetchWishlist, addToWishlist, removeFromWishlist } from "../store/slice/wishlist";
 import Spinner from "../components/Spinner";
 import Reviews from "./Reviews";
 import { toast } from "react-toastify";
 
 const SingleSportDetail = () => {
   const { id } = useParams();
-  const [sport, setSport] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const dispatch = useDispatch();
+  const { 
+    singleSport, 
+    loading,
+    singleStatus 
+  } = useSelector((state) => state.sportsVenue);
+  const { items: wishlist, loading: wishlistLoading } = useSelector((state) => state.wishlist);
+  const user = useSelector((state) => state.user.profile);
 
-  // Fetch sport details
   useEffect(() => {
-    const fetchSport = async () => {
-      const { data, error } = await supabase
-        .from("sports_venues")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (!error) setSport(data);
-      setLoading(false);
-    };
-
-    fetchSport();
-  }, [id]);
-
-  // Fetch logged-in user & check wishlist status
-  useEffect(() => {
-    const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (!error) {
-        setUser(data.user);
-        checkWishlist(data.user.id);
-      }
-    };
-
-    getUser();
-  }, [id]);
-
-  // Check if the venue is in the wishlist for the logged-in user
-  const checkWishlist = async (userId) => {
-    const { data, error } = await supabase
-      .from("wishlist")
-      .select("venue_id")
-      .eq("user_id", userId)
-      .eq("venue_id", id);
-
-    if (!error && data.length > 0) {
-      setIsWishlisted(true);
+    dispatch(fetchSingleSport(id));
+    if (user?.id) {
+      dispatch(fetchWishlist(user.id));
     }
-  };
 
-  // Add venue to wishlist
-  const addToWishlist = async () => {
+    
+  }, [id, dispatch, user]);
+
+  const isWishlisted = wishlist.some(item => item.venue_id === id);
+
+  const handleWishlistToggle = () => {
     if (!user) {
-     toast.warn("Please log in to add to wishlist.");
+      toast.warn("Please log in to modify wishlist");
       return;
     }
 
-    const { error } = await supabase.from("wishlist").insert([
-      {
-        user_id: user.id,
-        venue_id: id,
-      },
-    ]);
-
-    if (!error) {
-      setIsWishlisted(true);
+    if (isWishlisted) {
+      dispatch(removeFromWishlist({ userId: user.id, venueId: id }));
+    } else {
+      dispatch(addToWishlist({ userId: user.id, venueId: id }));
     }
   };
 
-  // Remove venue from wishlist
-  const removeFromWishlist = async () => {
-    if (!user) {
-      alert("Please log in to remove from wishlist.");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("wishlist")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("venue_id", id);
-
-    if (!error) {
-      setIsWishlisted(false);
-    }
-  };
-
-  if (loading) return <Spinner />;
-  if (!sport) return <p className="text-red-500 text-center">Sport not found.</p>;
+  if (loading || singleStatus === 'loading') return <Spinner />;
+  if (!singleSport || singleStatus === 'failed') return <p className="text-red-500 text-center">Sport not found.</p>;
 
   return (
     <div className="bg-gray-900 min-h-screen text-white py-10">
       <div className="max-w-4xl mx-auto px-6">
         <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
           <img
-            src={sport.image_url || "/images/snooker.jpg"}
-            alt={sport.name}
+            src={singleSport.image_url || "/images/snooker.jpg"}
+            alt={singleSport.name}
             className="w-full h-96 object-cover rounded-xl mb-6"
           />
-          <h2 className="text-3xl font-bold mb-4">{sport.name}</h2>
-          <p className="text-gray-300 mb-4">{sport.description}</p>
-          <p className="text-lg font-semibold mb-6">Price: Rs {sport.price}</p>
+          <h2 className="text-3xl font-bold mb-4">{singleSport.name}</h2>
+          <p className="text-gray-300 mb-4">{singleSport.description}</p>
+          <p className="text-lg font-semibold mb-6">Price: Rs {singleSport.price}</p>
 
-          {/* Buttons: Book Now + Wishlist */}
           <div className="flex gap-4">
             <Link
-              to={`/book/${sport.id}`}
+              to={`/book/${singleSport.id}`}
               className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition-all duration-300 inline-block"
             >
               Book now
             </Link>
 
-            {/* Wishlist Button */}
             {user && (
-              <>
-                {isWishlisted ? (
-                  <button
-                    onClick={removeFromWishlist}
-                    className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg transition-all duration-300"
-                  >
-                    ❌ Remove from Wishlist
-                  </button>
-                ) : (
-                  <button
-                    onClick={addToWishlist}
-                    className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-6 rounded-lg transition-all duration-300"
-                  >
-                    ❤️ Add to Wishlist
-                  </button>
-                )}
-              </>
+              <button
+                onClick={handleWishlistToggle}
+                disabled={wishlistLoading}
+                className={`${
+                  isWishlisted
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-gray-600 hover:bg-gray-700"
+                } text-white py-2 px-6 rounded-lg transition-all duration-300`}
+              >
+                {wishlistLoading ? "Processing..." : 
+                  isWishlisted ? "❌ Remove from Wishlist" : "❤️ Add to Wishlist"}
+              </button>
             )}
-            {/* If user is not logged in */}
             {!user && (
               <p className="text-red-500 font-semibold mt-4">Please log in to add to wishlist</p>
             )}
           </div>
         </div>
 
-        {/* Review Section */}
         <div className="mt-10">
           <Reviews venueId={id} user={user} />
         </div>

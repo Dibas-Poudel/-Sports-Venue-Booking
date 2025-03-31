@@ -1,116 +1,112 @@
-import { useState, useEffect } from 'react';
-import supabase from '../../services/supabaseClient';
-import Spinner from '../../components/Spinner';
-import RevenueAnalytics from './Chart';
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchAdminData,
+  addGame,
+  updateGame,
+  deleteGame,
+  deleteBooking,
+  verifyBooking,
+  adminActions,
+} from "../../store/slice/admin";
+import RevenueAnalytics from "./Chart";
 
 const AdminPanel = () => {
-  const [games, setGames] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [newGame, setNewGame] = useState({ name: '', description: '', price: '', image_url: '', type: '' });
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [loadingGames, setLoadingGames] = useState(true);
-  const [loadingBookings, setLoadingBookings] = useState(true);
+  const dispatch = useDispatch();
+  const { games, bookings, selectedGame, newGame, loading, error, status } =
+    useSelector((state) => state.admin);
 
+  // Initial data fetch - only runs when needed
   useEffect(() => {
-    const fetchData = async () => {
-      const gamesResult = await supabase.from('sports_venues').select('*');
-      if (gamesResult.error) {
-        console.error('Error fetching games:', gamesResult.error.message);
-      } else {
-        setGames(gamesResult.data);
+    if (games.length === 0 && bookings.length === 0 && status.fetch === 'idle') {
+      dispatch(fetchAdminData());
+    }
+  }, [dispatch, games.length, bookings.length, status.fetch]);
+
+  // Status reset effect
+  useEffect(() => {
+    const timers = [];
+    
+    Object.keys(status).forEach((action) => {
+      if (status[action] === "succeeded" || status[action] === "failed") {
+        const timer = setTimeout(() => {
+          dispatch(adminActions.resetStatus(action));
+        }, 1000);
+        timers.push(timer);
       }
+    });
 
-      const bookingsResult = await supabase.from('bookings').select('*');
-      if (bookingsResult.error) {
-        console.error('Error fetching bookings:', bookingsResult.error.message);
-      } else {
-        setBookings(bookingsResult.data);
-      }
+    return () => timers.forEach(timer => clearTimeout(timer));
+  }, [status, dispatch]);
 
-      setLoadingGames(false);
-      setLoadingBookings(false);
-    };
-
-    fetchData();
-  }, []);
-
-  const handleAddGame = async () => {
-    const { data, error } = await supabase
-      .from('sports_venues')
-      .insert([{
-        name: newGame.name,
-        type: newGame.type,
-        description: newGame.description,
+  const handleAddGame = () => {
+    dispatch(
+      addGame({
+        ...newGame,
         price: parseFloat(newGame.price),
-        image_url: newGame.image_url,
-      }])
-      .select();
-
-    if (error) {
-      alert(`Error Adding game: ${error.message}`);
-    } else {
-      setGames((prevGames) => [...prevGames, ...data]);
-      setNewGame({ name: '', type: '', description: '', price: '', image_url: '' });
-    }
-  };
-
-  const handleUpdateGame = async (gameId) => {
-    const { data, error } = await supabase
-      .from('sports_venues')
-      .update({
-        name: selectedGame.name,
-        type: selectedGame.type,
-        description: selectedGame.description,
-        price: parseFloat(selectedGame.price),
-        image_url: selectedGame.image_url,
       })
-      .eq('id', gameId)
-      .select();
-
-    if (error) {
-      alert(`Error updating game: ${error.message}`);
-    } else {
-      setGames((prevGames) =>
-        prevGames.map((game) => (game.id === gameId ? data[0] : game))
-      );
-      setSelectedGame(null);
-    }
+    );
   };
 
-  const handleDeleteGame = async (gameId) => {
-    const { error } = await supabase.from('sports_venues').delete().eq('id', gameId);
-    if (error) {
-      alert(`Error deleting game: ${error.message}`);
-    } else {
-      setGames((prevGames) => prevGames.filter((game) => game.id !== gameId));
-    }
-  };
-
-  const handleVerifyBooking = async (bookingId, currentStatus) => {
-    const { data, error } = await supabase
-      .from('bookings')
-      .update({ verified: !currentStatus })
-      .eq('booking_id', bookingId)
-      .select();
-
-    if (error) {
-      alert(`Error verifying booking: ${error.message}`);
-    } else {
-      setBookings((prevBookings) =>
-        prevBookings.map((booking) =>
-          booking.booking_id === bookingId ? data[0] : booking
-        )
+  const handleUpdateGame = () => {
+    if (selectedGame) {
+      dispatch(
+        updateGame({
+          gameId: selectedGame.id,
+          gameData: {
+            ...selectedGame,
+            price: parseFloat(selectedGame.price),
+          },
+        })
       );
     }
   };
 
-  if (loadingGames || loadingBookings) {
-    return <Spinner/>
-  }
+  const handleDeleteGame = (gameId) => {
+    if (window.confirm("Are you sure you want to delete this game?")) {
+      dispatch(deleteGame(gameId));
+    }
+  };
+
+  const handleVerifyBooking = (bookingId, currentStatus) => {
+    dispatch(
+      verifyBooking({
+        bookingId,
+        verified: !currentStatus,
+      })
+    );
+  };
+
+  const handleDeleteBooking = (bookingId) => {
+    if (window.confirm("Are you sure you want to delete this booking?")) {
+      dispatch(deleteBooking(bookingId));
+      
+    }
+  };
+
+  const handleRefreshData = () => {
+    dispatch(fetchAdminData());
+  };
+
+  const isProcessing =
+    status.add === "loading" ||
+    status.update === "loading" ||
+    status.delete === "loading" ||
+    status.bookingDelete === "loading" ||
+    status.verify === "loading";
 
   return (
     <div className="admin-panel p-6 bg-gray-700 min-h-screen text-white">
-      <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Admin Panel</h1>
+        <button
+          onClick={handleRefreshData}
+          disabled={status.fetch === "loading"}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          {status.fetch === "loading" ? "Refreshing..." : "Refresh Data"}
+        </button>
+      </div>
 
       {/* Add Game Form */}
       <div className="add-game-form mb-8 bg-gray-500 p-4 rounded-lg shadow-sm">
@@ -119,13 +115,19 @@ const AdminPanel = () => {
           type="text"
           placeholder="Game Name"
           value={newGame.name}
-          onChange={(e) => setNewGame({ ...newGame, name: e.target.value })}
+          onChange={(e) =>
+            dispatch(adminActions.updateNewGame({ name: e.target.value }))
+          }
           className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          disabled={isProcessing}
         />
         <select
           value={newGame.type}
-          onChange={(e) => setNewGame({ ...newGame, type: e.target.value })}
+          onChange={(e) =>
+            dispatch(adminActions.updateNewGame({ type: e.target.value }))
+          }
           className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          disabled={isProcessing}
         >
           <option value="">Select Type</option>
           <option value="Indoor">Indoor</option>
@@ -135,52 +137,85 @@ const AdminPanel = () => {
         <textarea
           placeholder="Game Description"
           value={newGame.description}
-          onChange={(e) => setNewGame({ ...newGame, description: e.target.value })}
+          onChange={(e) =>
+            dispatch(adminActions.updateNewGame({ description: e.target.value }))
+          }
           className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          disabled={isProcessing}
         />
         <input
           type="number"
           placeholder="Game Price"
           value={newGame.price}
-          onChange={(e) => setNewGame({ ...newGame, price: e.target.value })}
+          onChange={(e) =>
+            dispatch(adminActions.updateNewGame({ price: e.target.value }))
+          }
           className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+          disabled={isProcessing}
         />
         <input
           type="text"
           placeholder="Image URL"
           value={newGame.image_url}
-          onChange={(e) => setNewGame({ ...newGame, image_url: e.target.value })}
+          onChange={(e) =>
+            dispatch(adminActions.updateNewGame({ image_url: e.target.value }))
+          }
           className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
+          disabled={isProcessing}
         />
         <button
           onClick={handleAddGame}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          disabled={isProcessing || !newGame.name || !newGame.type}
+          className={`bg-blue-600 text-white px-4 py-2 rounded-md ${
+            isProcessing || !newGame.name || !newGame.type
+              ? "opacity-70 cursor-not-allowed"
+              : "hover:bg-blue-700"
+          }`}
         >
-          Add Game
+          {status.add === "loading" ? "Adding..." : "Add Game"}
         </button>
       </div>
 
       {/* Display Games */}
       <h2 className="text-2xl font-semibold mb-4">Manage Games</h2>
       <div className="game-list mb-8">
-        {Array.isArray(games) && games.map((game) => (
-          <div key={game.id} className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm">
+        {games.map((game) => (
+          <div
+            key={game.id}
+            className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm"
+          >
             <h3 className="font-semibold text-lg">{game.name}</h3>
-            <p><strong>Type:</strong> {game.type}</p>
-            <p><strong>Description:</strong> {game.description}</p>
-            <p><strong>Price:</strong> Rs.{game.price}</p>
+            <p>
+              <strong>Type:</strong> {game.type}
+            </p>
+            <p>
+              <strong>Description:</strong> {game.description}
+            </p>
+            <p>
+              <strong>Price:</strong> Rs.{game.price}
+            </p>
             <div className="mt-4 flex space-x-4">
               <button
-                onClick={() => setSelectedGame(game)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+                onClick={() => dispatch(adminActions.setSelectedGame(game))}
+                disabled={isProcessing}
+                className={`bg-yellow-500 text-white px-4 py-2 rounded-md ${
+                  isProcessing
+                    ? "opacity-70 cursor-not-allowed"
+                    : "hover:bg-yellow-600"
+                }`}
               >
                 Edit
               </button>
               <button
                 onClick={() => handleDeleteGame(game.id)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+                disabled={isProcessing}
+                className={`bg-red-600 text-white px-4 py-2 rounded-md ${
+                  isProcessing
+                    ? "opacity-70 cursor-not-allowed"
+                    : "hover:bg-red-700"
+                }`}
               >
-                Delete
+                {status.delete === "loading" ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
@@ -194,13 +229,29 @@ const AdminPanel = () => {
           <input
             type="text"
             value={selectedGame.name}
-            onChange={(e) => setSelectedGame({ ...selectedGame, name: e.target.value })}
+            onChange={(e) =>
+              dispatch(
+                adminActions.setSelectedGame({
+                  ...selectedGame,
+                  name: e.target.value,
+                })
+              )
+            }
             className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+            disabled={isProcessing}
           />
           <select
             value={selectedGame.type}
-            onChange={(e) => setSelectedGame({ ...selectedGame, type: e.target.value })}
+            onChange={(e) =>
+              dispatch(
+                adminActions.setSelectedGame({
+                  ...selectedGame,
+                  type: e.target.value,
+                })
+              )
+            }
             className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+            disabled={isProcessing}
           >
             <option value="">Select Type</option>
             <option value="Indoor">Indoor</option>
@@ -209,63 +260,134 @@ const AdminPanel = () => {
           </select>
           <textarea
             value={selectedGame.description}
-            onChange={(e) => setSelectedGame({ ...selectedGame, description: e.target.value })}
+            onChange={(e) =>
+              dispatch(
+                adminActions.setSelectedGame({
+                  ...selectedGame,
+                  description: e.target.value,
+                })
+              )
+            }
             className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+            disabled={isProcessing}
           />
           <input
             type="number"
             value={selectedGame.price}
-            onChange={(e) => setSelectedGame({ ...selectedGame, price: e.target.value })}
+            onChange={(e) =>
+              dispatch(
+                adminActions.setSelectedGame({
+                  ...selectedGame,
+                  price: e.target.value,
+                })
+              )
+            }
             className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+            disabled={isProcessing}
           />
           <input
             type="text"
             value={selectedGame.image_url}
-            onChange={(e) => setSelectedGame({ ...selectedGame, image_url: e.target.value })}
+            onChange={(e) =>
+              dispatch(
+                adminActions.setSelectedGame({
+                  ...selectedGame,
+                  image_url: e.target.value,
+                })
+              )
+            }
             className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
+            disabled={isProcessing}
           />
-          <button
-            onClick={() => handleUpdateGame(selectedGame.id)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-          >
-            Update Game
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={handleUpdateGame}
+              disabled={isProcessing}
+              className={`bg-green-600 text-white px-4 py-2 rounded-md ${
+                isProcessing
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-green-700"
+              }`}
+            >
+              {status.update === "loading" ? "Updating..." : "Update Game"}
+            </button>
+            <button
+              onClick={() => dispatch(adminActions.clearSelectedGame())}
+              disabled={isProcessing}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
       {/* Manage Bookings */}
       <h2 className="text-2xl font-semibold mb-4">Manage Bookings</h2>
       <div className="booking-list">
-        {Array.isArray(bookings) && bookings.map((booking) => (
-          <div key={booking.booking_id} className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm">
-            <p><strong>User ID:</strong> {booking.user_id}</p>
-            <p><strong>Name:</strong> {booking.name}</p>
-            <p><strong>Venue:</strong> {booking.venue_name}</p>
-            <p><strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> {booking.time}</p>
-            <p><strong>Status:</strong> {booking.verified ? 'Verified' : 'Pending'}</p>
+        {bookings.map((booking) => (
+          <div
+            key={booking.booking_id}
+            className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm"
+          >
+            <p>
+              <strong>User ID:</strong> {booking.user_id}
+            </p>
+            <p>
+              <strong>Name:</strong> {booking.name}
+            </p>
+            <p>
+              <strong>Venue:</strong> {booking.venue_name}
+            </p>
+            <p>
+              <strong>Date:</strong>{" "}
+              {new Date(booking.date).toLocaleDateString()}
+            </p>
+            <p>
+              <strong>Time:</strong> {booking.time}
+            </p>
+            <p>
+              <strong>Status:</strong>{" "}
+              {booking.verified ? "Verified" : "Pending"}
+            </p>
             <div className="mt-2">
-              {booking.verified ? (
-                <button
-                  onClick={() => handleVerifyBooking(booking.booking_id, booking.verified)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
-                >
-                  Unverify Booking
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleVerifyBooking(booking.booking_id, booking.verified)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-                >
-                  Verify Booking
-                </button>
-              )}
+              <button
+                onClick={() =>
+                  handleVerifyBooking(booking.booking_id, booking.verified)
+                }
+                disabled={isProcessing}
+                className={`${
+                  booking.verified
+                    ? "bg-yellow-500 hover:bg-yellow-600"
+                    : "bg-blue-600 hover:bg-blue-700"
+                } text-white px-4 py-2 rounded-md ${
+                  isProcessing ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+              >
+                {status.verify === "loading"
+                  ? "Processing..."
+                  : booking.verified
+                  ? "Unverify Booking"
+                  : "Verify Booking"}
+              </button>
+              <button
+                onClick={() => handleDeleteBooking(booking.booking_id)}
+                disabled={isProcessing}
+                className={`bg-red-600 text-white px-4 py-2 rounded-md ml-2 ${
+                  isProcessing
+                    ? "opacity-70 cursor-not-allowed"
+                    : "hover:bg-red-700"
+                }`}
+              >
+                {status.bookingDelete === "loading" ? "Deleting..." : "Delete"}
+              </button>
             </div>
           </div>
         ))}
       </div>
-      {/*dsiplay charts and graphs*/};
-      <RevenueAnalytics/>
+
+      {/* Analytics */}
+      <RevenueAnalytics />
     </div>
   );
 };
