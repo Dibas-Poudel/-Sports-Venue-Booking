@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Spinner from "../../components/Spinner";
 import { 
@@ -18,27 +18,24 @@ const UserBookings = () => {
     currentBooking,
     status
   } = useSelector((state) => state.booking);
-  
-  const [localBookings, setLocalBookings] = useState([]);
-
-  useEffect(() => {
-    if (bookings.length > 0) {
-      setLocalBookings(bookings);
-    }
-  }, [bookings]);
 
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchBookings(user.id));
     }
+
+    return () => {
+      // Reset statuses when component unmounts
+      dispatch(bookingActions.resetStatus('fetch'));
+      dispatch(bookingActions.resetStatus('delete'));
+      dispatch(bookingActions.resetStatus('update'));
+    };
   }, [user, dispatch]);
 
   const handleDelete = async (bookingId) => {
     if (window.confirm("Are you sure you want to delete this booking?")) {
       try {
         await dispatch(deleteBooking(bookingId)).unwrap();
-        // Optimistic update
-        setLocalBookings(prev => prev.filter(booking => booking.booking_id !== bookingId));
       } catch (error) {
         console.error("Failed to delete booking:", error);
       }
@@ -52,21 +49,13 @@ const UserBookings = () => {
   const handleUpdate = async () => {
     if (currentBooking) {
       try {
-        const updatedBooking = await dispatch(updateBooking({
+        await dispatch(updateBooking({
           bookingId: currentBooking.booking_id,
           venueName: currentBooking.venue_name,
           date: currentBooking.date,
           time: currentBooking.time
         })).unwrap();
         
-        // Update local state
-        setLocalBookings(prev => 
-          prev.map(booking => 
-            booking.booking_id === updatedBooking.booking_id ? updatedBooking : booking
-          )
-        );
-        
-        // Clear current booking after successful update
         dispatch(bookingActions.clearCurrentBooking());
       } catch (error) {
         console.error("Failed to update booking:", error);
@@ -74,7 +63,6 @@ const UserBookings = () => {
     }
   };
 
-  
   if (loading && status.fetch === 'loading') return <Spinner />;
   if (error) return <div className="text-red-500">{error}</div>;
 
@@ -82,12 +70,10 @@ const UserBookings = () => {
     <div className="p-6 bg-gray-800 min-h-screen text-white">
       <h2 className="text-3xl font-bold mb-6">My Bookings</h2>
 
-      
-
-      {localBookings.length === 0 ? (
+      {bookings.length === 0 ? (
         <p>No bookings found.</p>
       ) : (
-        localBookings.map((booking) => (
+        bookings.map((booking) => (
           <div
             key={booking.booking_id}
             className="bg-gray-700 p-4 mb-4 rounded-lg shadow-md"
@@ -110,7 +96,9 @@ const UserBookings = () => {
                 className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md"
                 disabled={status.update === 'loading' || status.delete === 'loading'}
               >
-                Delete
+                {status.delete === 'loading' && booking.booking_id === currentBooking?.booking_id 
+                  ? 'Deleting...' 
+                  : 'Delete'}
               </button>
             </div>
           </div>

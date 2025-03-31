@@ -22,34 +22,32 @@ export function fetchBookings(userId) {
   };
 }
 
-export function createBooking({ userId, venueName, date, time, name }) {
+export function createBooking({ userId, venueName, date, time,name }) {
   return async function createBookingThunk(dispatch) {
     dispatch(bookingActions.createStart());
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .insert([{ user_id: userId, venue_name: venueName, date, time, name }])
+        .insert([{ user_id: userId, venue_name: venueName, date, time,name }])
         .select();
 
       if (error) throw error;
       dispatch(bookingActions.createSuccess(data[0]));
       toast.success('Booking created successfully!');
-      return data[0];
     } catch (error) {
       dispatch(bookingActions.createFailure(error.message));
       toast.error('Failed to create booking');
-      throw error;
     }
   };
 }
 
-export function updateBooking({ bookingId, venueName, date, time }) {
+export function updateBooking({ bookingId, venueName, date, time,name }) {
   return async function updateBookingThunk(dispatch) {
     dispatch(bookingActions.updateStart());
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .update({ venue_name: venueName, date, time })
+        .update({ venue_name: venueName, date, time,name })
         .eq('booking_id', bookingId)
         .select();
 
@@ -81,6 +79,7 @@ export function deleteBooking(bookingId) {
     }
   };
 }
+
 export function checkAvailability({ venueName, date, time }) {
   return async function checkAvailabilityThunk(dispatch) {
     dispatch(bookingActions.checkAvailabilityStart());
@@ -94,8 +93,11 @@ export function checkAvailability({ venueName, date, time }) {
 
       if (error) throw error;
       dispatch(bookingActions.checkAvailabilitySuccess(data.length === 0));
+      return data.length === 0;
     } catch (error) {
       dispatch(bookingActions.checkAvailabilityFailure(error.message));
+      toast.error('Failed to check availability');
+      return false;
     }
   };
 }
@@ -112,19 +114,22 @@ export function fetchVenueName(venueId) {
 
       if (error) throw error;
       dispatch(bookingActions.fetchVenueNameSuccess(data?.name));
+      return data?.name;
     } catch (error) {
       dispatch(bookingActions.fetchVenueNameFailure(error.message));
+      toast.error('Failed to fetch venue name');
+      return null;
     }
   };
 }
 
 const initialState = {
   bookings: [],
-  venueName: '',
-  isAvailable: true,
   loading: false,
   error: null,
   currentBooking: null,
+  isAvailable: true,
+  venueName: '',
   status: {
     fetch: 'idle',
     create: 'idle',
@@ -139,6 +144,7 @@ const bookingSlice = createSlice({
   name: 'booking',
   initialState,
   reducers: {
+    // Current booking management
     setCurrentBooking: (state, action) => {
       state.currentBooking = action.payload;
     },
@@ -151,6 +157,7 @@ const bookingSlice = createSlice({
         ...action.payload
       };
     },
+
     // Fetch actions
     fetchStart: (state) => {
       state.loading = true;
@@ -167,6 +174,7 @@ const bookingSlice = createSlice({
       state.error = action.payload;
       state.status.fetch = 'failed';
     },
+
     // Create actions
     createStart: (state) => {
       state.loading = true;
@@ -183,6 +191,7 @@ const bookingSlice = createSlice({
       state.error = action.payload;
       state.status.create = 'failed';
     },
+
     // Update actions
     updateStart: (state) => {
       state.loading = true;
@@ -202,6 +211,7 @@ const bookingSlice = createSlice({
       state.error = action.payload;
       state.status.update = 'failed';
     },
+
     // Delete actions
     deleteStart: (state) => {
       state.loading = true;
@@ -220,6 +230,7 @@ const bookingSlice = createSlice({
       state.error = action.payload;
       state.status.delete = 'failed';
     },
+
     // Check availability actions
     checkAvailabilityStart: (state) => {
       state.loading = true;
@@ -236,6 +247,7 @@ const bookingSlice = createSlice({
       state.error = action.payload;
       state.status.checkAvailability = 'failed';
     },
+
     // Fetch venue name actions
     fetchVenueNameStart: (state) => {
       state.loading = true;
@@ -252,7 +264,8 @@ const bookingSlice = createSlice({
       state.error = action.payload;
       state.status.fetchVenueName = 'failed';
     },
-    // Reset actions
+
+    // Reset status
     resetStatus: (state, action) => {
       state.status[action.payload] = 'idle';
     }
