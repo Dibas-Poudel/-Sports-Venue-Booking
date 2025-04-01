@@ -15,8 +15,8 @@ const Header = () => {
 
   useEffect(() => {
     if (logoutStatus === 'succeeded') {
-      dispatch(resetLogoutStatus()); // Reset the logout status
-      navigate('/'); // Redirect to home after logout
+      dispatch(resetLogoutStatus()); 
+      navigate('/'); 
     }
   }, [logoutStatus, dispatch, navigate]);
 

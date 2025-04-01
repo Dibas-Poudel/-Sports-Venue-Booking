@@ -12,7 +12,6 @@ const Login = () => {
     password: "",
   });
   
-  // Get login status from Redux store
   const { loginStatus, loading } = useSelector(state => state.user);
 
   const handleChange = (e) => {

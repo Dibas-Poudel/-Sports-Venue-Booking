@@ -14,7 +14,7 @@ const Register = () => {
 
   useEffect(() => {
     if (registerStatus === 'succeeded') {
-      setTimeout(() => navigate("/login"), 3000);
+      navigate("/login");
     }
   }, [registerStatus, navigate]);
 

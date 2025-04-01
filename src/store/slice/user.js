@@ -74,8 +74,8 @@ export function register({ email, password }) {
 
       toast.success("Registration successful!");
       dispatch(userActions.registerSuccess({
-        user: data.user,
-        role: "user",
+        // user: data.user,
+        // role: "user",
       }));
     } catch (error) {
       toast.error("An error occurred during registration");
