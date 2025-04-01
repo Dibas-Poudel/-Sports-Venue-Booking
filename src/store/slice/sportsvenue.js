@@ -93,10 +93,6 @@ const sportsVenueSlice = createSlice({
   name: "sportsVenue",
   initialState,
   reducers: {
-    clearSingleSport: (state) => {
-      state.singleSport = null;
-      state.singleStatus = 'idle';
-    },
     // Outdoor sports actions
     fetchOutdoorStart: (state) => {
       state.loading = true;
@@ -160,6 +156,10 @@ const sportsVenueSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
       state.singleStatus = 'failed';
+    },
+    clearSingleSport: (state) => {
+      state.singleSport = null;
+      state.singleStatus = 'idle';
     },
   }
 });

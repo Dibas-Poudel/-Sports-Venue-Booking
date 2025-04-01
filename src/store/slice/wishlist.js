@@ -25,7 +25,6 @@ export function addToWishlist({ userId, venueId }) {
   return async function addToWishlistThunk(dispatch) {
     dispatch(wishlistActions.addStart());
     try {
-      // Optimistic update
       dispatch(wishlistActions.addItemOptimistic(venueId));
 
       const { error } = await supabase
@@ -33,12 +32,10 @@ export function addToWishlist({ userId, venueId }) {
         .insert([{ user_id: userId, venue_id: venueId }]);
 
       if (error) {
-        // Revert optimistic update if failed
-        dispatch(wishlistActions.removeItemOptimistic(venueId));
+      dispatch(wishlistActions.removeItemOptimistic(venueId));
         throw error;
       }
 
-      // Refresh the list after successful addition
       dispatch(fetchWishlist(userId));
       toast.success("Added to wishlist");
     } catch (error) {
@@ -52,7 +49,6 @@ export function removeFromWishlist({ userId, venueId }) {
   return async function removeFromWishlistThunk(dispatch) {
     dispatch(wishlistActions.removeStart());
     try {
-      // Optimistic update
       dispatch(wishlistActions.removeItemOptimistic(venueId));
 
       const { error } = await supabase
@@ -62,12 +58,10 @@ export function removeFromWishlist({ userId, venueId }) {
         .eq("venue_id", venueId);
 
       if (error) {
-        // Revert optimistic update if failed
         dispatch(wishlistActions.addItemOptimistic(venueId));
         throw error;
       }
 
-      // Refresh the list after successful removal
       dispatch(fetchWishlist(userId));
       toast.success("Removed from wishlist");
     } catch (error) {

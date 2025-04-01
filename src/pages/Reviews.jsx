@@ -34,7 +34,6 @@ const Reviews = ({ venueId, user }) => {
     }
   }, [currentReview]);
 
-  // Fetch reviews on mount and when venueId changes
   useEffect(() => {
     if (venueId) {
       dispatch(fetchReviews(venueId));

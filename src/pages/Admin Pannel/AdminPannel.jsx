@@ -13,10 +13,9 @@ import RevenueAnalytics from "./Chart";
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
-  const { games, bookings, selectedGame, newGame, loading, error, status } =
+  const { games, bookings, selectedGame, newGame, status } =
     useSelector((state) => state.admin);
 
-  // Initial data fetch - only runs when needed
   useEffect(() => {
     if (
       games.length === 0 &&

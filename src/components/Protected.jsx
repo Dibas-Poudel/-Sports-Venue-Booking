@@ -7,13 +7,12 @@ const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If User is not logged in, redirect to login page
     if (!user) {
       navigate("/login");
     }
   }, [user, navigate]);
 
-  return user ? children : null; // Render children if user exists, otherwise return null
+  return user ? children : null; 
 };
 
 export default ProtectedRoute;

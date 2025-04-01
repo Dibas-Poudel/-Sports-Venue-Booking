@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
-import { toast } from 'react-toastify'; // For better user feedback
+import { toast } from 'react-toastify'; 
 
 const Contact = () => {
   const serviceId = import.meta.env.VITE_SERVICE_ID;
@@ -19,16 +19,16 @@ const Contact = () => {
       .then(
         (result) => {
           console.log(result.text);
-          toast.success("Message sent successfully!"); // Display success toast
+          toast.success("Message sent successfully!"); 
         },
         (error) => {
           console.log(error.text);
-          toast.error("Something went wrong. Please try again."); // Display error toast
+          toast.error("Something went wrong. Please try again."); 
         }
       )
       .finally(() => {
         setLoading(false);
-        form.current.reset(); // Reset the form after submission
+        form.current.reset(); 
       });
   };
 

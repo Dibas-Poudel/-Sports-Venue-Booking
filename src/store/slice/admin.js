@@ -32,19 +32,6 @@ const adminSlice = createSlice({
   name: 'admin',
   initialState,
   reducers: {
-    bookingDeleteSuccess: (state, action) => {
-      state.loading = false;
-      state.bookings = state.bookings.filter(
-        booking => booking.booking_id !== action.payload
-      );
-      // Update analytics immediately after deleting a booking
-      state.analytics = calculateAnalytics(state.bookings);
-      state.status.bookingDelete = 'succeeded';
-    },
-    // Add this new reducer to update analytics
-    updateAnalytics: (state) => {
-      state.analytics = calculateAnalytics(state.bookings);
-    },
     setSelectedGame: (state, action) => {
       state.selectedGame = action.payload;
     },
@@ -146,7 +133,12 @@ const adminSlice = createSlice({
       // Update analytics immediately after deleting a booking
       state.analytics = calculateAnalytics(state.bookings);
       toast.success('Booking deleted successfully!'); 
+      state.status.bookingDelete = 'succeeded';
     },
+    updateAnalytics: (state) => {
+      state.analytics = calculateAnalytics(state.bookings);
+    },
+
     bookingDeleteFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
