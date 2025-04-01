@@ -32,6 +32,11 @@ const BookingPage = () => {
       dispatch(fetchVenueName(game));
     }
   }, [game, dispatch, status.fetchVenueName]);
+useEffect(() => {
+  if (game) {
+    dispatch(fetchVenueName(game));
+  }
+}, [game, dispatch]);
 
   // Check availability when date/time changes
   useEffect(() => {

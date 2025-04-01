@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSingleSport } from "../store/slice/sportsvenue";
+import { fetchSingleSport, sportsVenueActions } from "../store/slice/sportsvenue";
 import { fetchWishlist, addToWishlist, removeFromWishlist } from "../store/slice/wishlist";
 import Spinner from "../components/Spinner";
 import Reviews from "./Reviews";
@@ -19,13 +19,14 @@ const SingleSportDetail = () => {
   const user = useSelector((state) => state.user.profile);
 
   useEffect(() => {
+    dispatch(sportsVenueActions.clearSingleSport()); 
     dispatch(fetchSingleSport(id));
+  
     if (user?.id) {
       dispatch(fetchWishlist(user.id));
     }
-
-    
   }, [id, dispatch, user]);
+  
 
   const isWishlisted = wishlist.some(item => item.venue_id === id);
 
