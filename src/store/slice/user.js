@@ -11,7 +11,7 @@ export function login({ email, password }) {
     dispatch(userActions.loginStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/login`, { email, password });
+      const res = await axios.post(`${BASE_URL}/users/login`, { email, password });
       const { user } = res.data;
 
       if (!user || !user.id) {
@@ -32,7 +32,7 @@ export function register({ email, password }) {
     dispatch(userActions.registerStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/register`, { email, password });
+      const res = await axios.post(`${BASE_URL}/users/register`, { email, password });
       const { user } = res.data;
 
       if (!user || !user.id) {
@@ -54,7 +54,7 @@ export function fetchProfile(userId) {
     dispatch(userActions.fetchProfileStart());
 
     try {
-      const res = await axios.get(`${BASE_URL}/getuser/${userId}`);
+      const res = await axios.get(`${BASE_URL}/users/getuser/${userId}`);
       const user = res.data;
 
       dispatch(userActions.fetchProfileSuccess(user));
