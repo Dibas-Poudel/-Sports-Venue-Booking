@@ -14,7 +14,7 @@ export function login({ email, password }) {
       const res = await axios.post(`${BASE_URL}/users/login`, { email, password });
       const { user } = res.data;
 
-      if (!user || !user.id) {
+      if (!user || !user._id) {
         throw new Error("Invalid user data");
       }
 
@@ -39,7 +39,7 @@ export function register({ email, password }) {
           });
       const { user } = res.data;
 
-      if (!user || !user.id) {
+      if (!user || !user._id) {
         throw new Error("Invalid registration data");
       }
 
