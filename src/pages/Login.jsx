@@ -20,8 +20,9 @@ const Login = () => {
 
   const  handleLogin = async (e) => {
     e.preventDefault();
-   await  dispatch(login(formData)); 
+  dispatch(login({ email: formData.email, password: formData.password }));
   };
+  
   
    useEffect(() => {
     if (loginStatus === 'succeeded') {

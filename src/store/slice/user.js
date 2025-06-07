@@ -1,125 +1,81 @@
 import { createSlice } from "@reduxjs/toolkit";
-import supabase from "../../services/supabaseClient";
+import axios from "axios";
 import { toast } from "react-toastify";
 
-// User login action
+// API base URL
+const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1";
+
+// Thunk: User login
 export function login({ email, password }) {
   return async function loginThunk(dispatch) {
     dispatch(userActions.loginStart());
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const res = await axios.post(`${BASE_URL}/login`, { email, password });
+      const { user } = res.data;
 
-      if (error) {
-        toast.error(error.message);
-        dispatch(userActions.loginFailure(error.message));
-        return;
+      if (!user || !user.id) {
+        throw new Error("Invalid user data");
       }
 
-      // Fetch user profile after successful login
-      const { data: profile, error: profileError } = await supabase
-        .from("user")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
-
-      if (profileError) {
-        toast.error("Failed to fetch user profile");
-        dispatch(userActions.loginFailure("Failed to fetch user profile"));
-        return;
-      }
-
-      dispatch(userActions.loginSuccess({
-        
-        user: data.user,
-        role: profile.role,
-      }));
-    } catch (error) {
-      toast.error("An error occurred during login");
-      dispatch(userActions.loginFailure(error.message));
+      dispatch(userActions.loginSuccess({ user, role: user.role }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Login failed");
+      dispatch(userActions.loginFailure(err.message));
     }
   };
 }
 
-// User registration action
+// Thunk: User registration
 export function register({ email, password }) {
   return async function registerThunk(dispatch) {
     dispatch(userActions.registerStart());
+
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      const res = await axios.post(`${BASE_URL}/register`, { email, password });
+      const { user } = res.data;
 
-      if (error) {
-        toast.error(error.message);
-        dispatch(userActions.registerFailure(error.message));
-        return;
+      if (!user || !user.id) {
+        throw new Error("Invalid registration data");
       }
 
-      // Create user profile after registration
-      const { error: insertError } = await supabase.from("user").insert({
-        id: data.user.id,
-        email,
-        role: "user",
-      });
-
-      if (insertError) {
-        toast.warning("Registered but failed to create profile");
-        dispatch(userActions.registerFailure(insertError.message));
-        return;
-      }
-
+      dispatch(userActions.registerSuccess({ user, role: user.role }));
       toast.success("Registration successful!");
-      dispatch(userActions.registerSuccess({
-        // user: data.user,
-        // role: "user",
-      }));
-    } catch (error) {
-      toast.error("An error occurred during registration");
-      dispatch(userActions.registerFailure(error.message));
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Registration failed");
+      dispatch(userActions.registerFailure(err.message));
     }
   };
 }
 
-// Fetch user profile action
+// Thunk: Fetch profile by userId
 export function fetchProfile(userId) {
   return async function fetchProfileThunk(dispatch) {
     dispatch(userActions.fetchProfileStart());
+
     try {
-      const { data, error } = await supabase
-        .from("user")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      const res = await axios.get(`${BASE_URL}/getuser/${userId}`);
+      const user = res.data;
 
-      if (error) {
-        dispatch(userActions.fetchProfileFailure(error.message));
-        return;
-      }
-
-      dispatch(userActions.fetchProfileSuccess(data));
-    } catch (error) {
-      dispatch(userActions.fetchProfileFailure(error.message));
+      dispatch(userActions.fetchProfileSuccess(user));
+    } catch (err) {
+      dispatch(userActions.fetchProfileFailure(err.message));
     }
   };
 }
 
-// User logout action
+// Thunk: Logout
 export function logout() {
   return async function logoutThunk(dispatch) {
-    dispatch(userActions.logoutStart());  
+    dispatch(userActions.logoutStart());
+
     try {
-      const { error } = await supabase.auth.signOut(); 
-      if (error) {
-        dispatch(userActions.logoutFailure(error.message)); 
-        return;
-      }
-      dispatch(userActions.logoutSuccess());  
-    } catch (error) {
-      dispatch(userActions.logoutFailure(error.message)); 
+      // If your API needs to be called to invalidate tokens
+      await axios.post(`${BASE_URL}/logout`);
+
+      dispatch(userActions.logoutSuccess());
+    } catch (err) {
+      dispatch(userActions.logoutFailure(err.message));
     }
   };
 }
@@ -129,21 +85,17 @@ const initialState = {
   role: null,
   loading: false,
   error: null,
-  loginStatus: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+  loginStatus: 'idle',
   registerStatus: 'idle',
   profileStatus: 'idle',
   logoutStatus: 'idle',
-  resetLogoutStatus: 'idle',
-  resetLoginStatus: 'idle',
-  resetRegisterStatus: 'idle',
-  resetProfileStatus: 'idle',
 };
 
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    // Login actions
+    // Login
     loginStart: (state) => {
       state.loading = true;
       state.error = null;
@@ -160,8 +112,8 @@ const userSlice = createSlice({
       state.error = action.payload;
       state.loginStatus = 'failed';
     },
-    
-    // Registration actions
+
+    // Register
     registerStart: (state) => {
       state.loading = true;
       state.error = null;
@@ -178,8 +130,8 @@ const userSlice = createSlice({
       state.error = action.payload;
       state.registerStatus = 'failed';
     },
-    
-    // Profile actions
+
+    // Profile
     fetchProfileStart: (state) => {
       state.loading = true;
       state.error = null;
@@ -187,6 +139,7 @@ const userSlice = createSlice({
     },
     fetchProfileSuccess: (state, action) => {
       state.loading = false;
+      state.profile = action.payload;
       state.role = action.payload.role;
       state.profileStatus = 'succeeded';
     },
@@ -195,8 +148,8 @@ const userSlice = createSlice({
       state.error = action.payload;
       state.profileStatus = 'failed';
     },
-    
-    // Logout actions
+
+    // Logout
     logoutStart: (state) => {
       state.loading = true;
       state.error = null;
@@ -213,7 +166,7 @@ const userSlice = createSlice({
       state.error = action.payload;
       state.logoutStatus = 'failed';
     },
-    
+
     // Reset actions
     resetLoginStatus: (state) => {
       state.loginStatus = 'idle';
@@ -230,12 +183,12 @@ const userSlice = createSlice({
   },
 });
 
-
-export const { 
+export const {
   resetLoginStatus,
   resetRegisterStatus,
   resetProfileStatus,
-  resetLogoutStatus 
+  resetLogoutStatus,
 } = userSlice.actions;
+
 export const userActions = userSlice.actions;
 export default userSlice.reducer;
