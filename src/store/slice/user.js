@@ -32,7 +32,11 @@ export function register({ email, password }) {
     dispatch(userActions.registerStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/users/register`, { email, password });
+      const res = await axios.post(`${BASE_URL}/users/register`,
+         {
+           email,
+           password 
+          });
       const { user } = res.data;
 
       if (!user || !user.id) {
@@ -47,6 +51,7 @@ export function register({ email, password }) {
     }
   };
 }
+
 
 // Thunk: Fetch profile by userId
 export function fetchProfile(userId) {

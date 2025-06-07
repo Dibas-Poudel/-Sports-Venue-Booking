@@ -25,7 +25,7 @@ const Register = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await dispatch(register(formData)); 
+  dispatch(register({ email: formData.email, password: formData.password }));
     } catch (error) {
       console.error("Registration error:", error);
     }
