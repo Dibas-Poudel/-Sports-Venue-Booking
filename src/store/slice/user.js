@@ -12,7 +12,7 @@ export function login({ email, password }) {
 
     try {
       const res = await axios.post(`${BASE_URL}/users/login`, { email, password });
-      const { user } = res.data;
+      const { user } = res.data.message;
 
       if (!user || !user._id) {
         throw new Error("Invalid user data");
@@ -32,12 +32,12 @@ export function register({ email, password }) {
     dispatch(userActions.registerStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/users/register`,
-         {
-           email,
-           password 
-          });
-      const { user } = res.data;
+      const res = await axios.post(`${BASE_URL}/users/register`, {
+        email,
+        password
+      });
+
+      const { user } = res.data.message; 
 
       if (!user || !user._id) {
         throw new Error("Invalid registration data");
@@ -53,6 +53,7 @@ export function register({ email, password }) {
 }
 
 
+
 // Thunk: Fetch profile by userId
 export function fetchProfile(userId) {
   return async function fetchProfileThunk(dispatch) {
@@ -60,7 +61,7 @@ export function fetchProfile(userId) {
 
     try {
       const res = await axios.get(`${BASE_URL}/users/getuser/${userId}`);
-      const user = res.data;
+      const user = res.data.message;
 
       dispatch(userActions.fetchProfileSuccess(user));
     } catch (err) {
