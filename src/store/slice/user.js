@@ -87,7 +87,9 @@ export function logout() {
 
     try {
       // If your API needs to be called to invalidate tokens
-      await axios.post(`${BASE_URL}/users/logout`);
+      await axios.post(`${BASE_URL}/users/logout`,{
+        withCredentials:true,
+      });
 
       dispatch(userActions.logoutSuccess());
     } catch (err) {
