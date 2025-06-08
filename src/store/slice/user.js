@@ -85,15 +85,19 @@ export function fetchProfile(userId) {
 export function logout() {
   return async function logoutThunk(dispatch) {
     dispatch(userActions.logoutStart());
-
     try {
-      // If your API needs to be called to invalidate tokens
-      await axios.post(`${BASE_URL}/users/logout`,{
-            headers: { 'Content-Type': 'application/json' },
-        withCredentials:true,
-      });
+      // Call logout API, pass empty body {}, and config object with headers and withCredentials
+      await axios.post(
+        `${BASE_URL}/users/logout`,
+        {}, // empty body
+        {
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true,
+        }
+      );
 
       dispatch(userActions.logoutSuccess());
+
     } catch (err) {
       dispatch(userActions.logoutFailure(err.message));
     }
