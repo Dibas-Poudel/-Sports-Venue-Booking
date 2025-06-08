@@ -3,7 +3,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 // API base URL
-const BASE_URL = "https://sportvenuebackend.onrender.com";
+const BASE_URL = "https://sportvenuebackend.onrender.com"
+// const BASE_URL="http://localhost:3000/api/v1"   This is completely wroking on my local server
 
 // Thunk: User login
 export function login({ email, password }) {
