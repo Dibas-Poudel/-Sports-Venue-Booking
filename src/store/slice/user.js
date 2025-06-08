@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 // API base URL
-const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1";
+const BASE_URL = "https://sportvenuebackend.onrender.com";
 
 // Thunk: User login
 export function login({ email, password }) {
@@ -11,7 +11,11 @@ export function login({ email, password }) {
     dispatch(userActions.loginStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/users/login`, { email, password });
+      const res = await axios.post(`${BASE_URL}/users/login`, { email, password },{
+        headers: {
+         'Content-Type': 'application/json'
+  }
+      });
       const { user } = res.data.message;
 
       if (!user || !user._id) {
@@ -32,12 +36,16 @@ export function register({ email, password }) {
     dispatch(userActions.registerStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/users/register`, {
-        email,
-        password
+      const res = await axios.post(`${BASE_URL}/users/register`, { email, password },{
+    headers: { 'Content-Type': 'application/json' },
+    withCredentials: true  
+
       });
 
-      const { user } = res.data.message; 
+      // Access user inside the 'message' property
+      const { user } = res.data.message;
+      console.log(user);
+      console.log(user._id);
 
       if (!user || !user._id) {
         throw new Error("Invalid registration data");
@@ -46,6 +54,7 @@ export function register({ email, password }) {
       dispatch(userActions.registerSuccess({ user, role: user.role }));
       toast.success("Registration successful!");
     } catch (err) {
+      console.log(err);
       toast.error(err.response?.data?.message || "Registration failed");
       dispatch(userActions.registerFailure(err.message));
     }

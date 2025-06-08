@@ -85,8 +85,14 @@ const router = createBrowserRouter([
     ]
   }
 ]);
+const container = document.getElementById('root');
 
-createRoot(document.getElementById('root')).render(
+// Store the root instance globally to avoid double createRoot()
+if (!window.__REACT_ROOT__) {
+  window.__REACT_ROOT__ = createRoot(container);
+}
+
+window.__REACT_ROOT__.render(
   <StrictMode>
     <Provider store={store}>
       <RouterProvider router={router} />
