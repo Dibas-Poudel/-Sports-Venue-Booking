@@ -14,7 +14,8 @@ export function login({ email, password }) {
     try {
       const res = await axios.post(`${BASE_URL}/users/login`, { email, password },{
         headers: {
-         'Content-Type': 'application/json'
+         'Content-Type': 'application/json',
+         withCredentials:true
   }
       });
       const { user } = res.data.message;
@@ -88,6 +89,7 @@ export function logout() {
     try {
       // If your API needs to be called to invalidate tokens
       await axios.post(`${BASE_URL}/users/logout`,{
+            headers: { 'Content-Type': 'application/json' },
         withCredentials:true,
       });
 
