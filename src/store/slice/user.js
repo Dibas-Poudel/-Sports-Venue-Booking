@@ -3,8 +3,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 // API base URL
-const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1"
-// const BASE_URL="http://localhost:3000/api/v1"   This is completely wroking on my local server
+const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1";
+// const BASE_URL = "http://localhost:3000/api/v1"; // works locally
 
 // Thunk: User login
 export function login({ email, password }) {
@@ -12,12 +12,17 @@ export function login({ email, password }) {
     dispatch(userActions.loginStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/users/login`, { email, password },{
-        headers: {
-         'Content-Type': 'application/json',
-         withCredentials:true
-  }
-      });
+      const res = await axios.post(
+        `${BASE_URL}/users/login`,
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, 
+        }
+      );
+
       const { user } = res.data.message;
 
       if (!user || !user._id) {
@@ -38,16 +43,18 @@ export function register({ email, password }) {
     dispatch(userActions.registerStart());
 
     try {
-      const res = await axios.post(`${BASE_URL}/users/register`, { email, password },{
-    headers: { 'Content-Type': 'application/json' },
-    withCredentials: true  
+      const res = await axios.post(
+        `${BASE_URL}/users/register`,
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, 
+        }
+      );
 
-      });
-
-      // Access user inside the 'message' property
       const { user } = res.data.message;
-      console.log(user);
-      console.log(user._id);
 
       if (!user || !user._id) {
         throw new Error("Invalid registration data");
@@ -63,46 +70,30 @@ export function register({ email, password }) {
   };
 }
 
-
-
-// Thunk: Fetch profile by userId
-export function fetchProfile(userId) {
-  return async function fetchProfileThunk(dispatch) {
-    dispatch(userActions.fetchProfileStart());
-
-    try {
-      const res = await axios.get(`${BASE_URL}/users/getuser/${userId}`);
-      const user = res.data.message;
-
-      dispatch(userActions.fetchProfileSuccess(user));
-    } catch (err) {
-      dispatch(userActions.fetchProfileFailure(err.message));
-    }
-  };
-}
-
-// Thunk: Logout
+// Thunk: User logout
 export function logout() {
   return async function logoutThunk(dispatch) {
     dispatch(userActions.logoutStart());
+
     try {
-      // Call logout API, pass empty body {}, and config object with headers and withCredentials
       await axios.post(
         `${BASE_URL}/users/logout`,
-        {}, // empty body
+        {},
         {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, 
         }
       );
 
       dispatch(userActions.logoutSuccess());
-
     } catch (err) {
       dispatch(userActions.logoutFailure(err.message));
     }
   };
 }
+
 
 const initialState = {
   profile: null,
