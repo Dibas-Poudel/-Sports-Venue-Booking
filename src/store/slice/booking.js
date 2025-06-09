@@ -2,10 +2,11 @@ import { createSlice } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
-const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1/bookings"
-// Action creators
+const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1/bookings";
+
+// Thunks
 export function fetchBookings(userId) {
-  return async function fetchBookingsThunk(dispatch) {
+  return async function (dispatch) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${userId}`);
@@ -17,16 +18,16 @@ export function fetchBookings(userId) {
   };
 }
 
-
-export function createBooking({  venueName, date, time, name }) {
-  return async function createBookingThunk(dispatch) {
+export function createBooking({ venueName, date, time, name, sportVenueId }) {
+  return async function (dispatch) {
     dispatch(bookingActions.createStart());
     try {
-      const response = await axios.post(`${BASE_URL}/`, {
-        venue_name: venueName,
+      const response = await axios.post(BASE_URL, {
+        venueName,
         date,
         time,
         name,
+        sportVenueId,
       });
       dispatch(bookingActions.createSuccess(response.data.data));
       toast.success('Booking created successfully!');
@@ -37,9 +38,8 @@ export function createBooking({  venueName, date, time, name }) {
   };
 }
 
-
 export function updateBooking({ bookingId, name, date, time }) {
-  return async function updateBookingThunk(dispatch) {
+  return async function (dispatch) {
     dispatch(bookingActions.updateStart());
     try {
       const response = await axios.patch(`${BASE_URL}/edit/${bookingId}`, {
@@ -56,10 +56,8 @@ export function updateBooking({ bookingId, name, date, time }) {
   };
 }
 
-
-
 export function deleteBooking(bookingId) {
-  return async function deleteBookingThunk(dispatch) {
+  return async function (dispatch) {
     dispatch(bookingActions.deleteStart());
     try {
       await axios.delete(`${BASE_URL}/${bookingId}`);
@@ -72,16 +70,14 @@ export function deleteBooking(bookingId) {
   };
 }
 
-
 export function checkAvailability({ venueName, date, time }) {
-  return async function checkAvailabilityThunk(dispatch) {
+  return async function (dispatch) {
     if (!venueName || !date || !time) {
       toast.error('Invalid availability check parameters');
       return false;
     }
 
     dispatch(bookingActions.checkAvailabilityStart());
-
     try {
       const response = await axios.post(`${BASE_URL}/check-availability`, {
         venueName,
@@ -89,41 +85,16 @@ export function checkAvailability({ venueName, date, time }) {
         time,
       });
 
-      const isAvailable = response.data.isAvailable; // boolean returned from backend
+      const isAvailable = response.data.isAvailable;
       dispatch(bookingActions.checkAvailabilitySuccess(isAvailable));
       return isAvailable;
     } catch (error) {
-      console.error("Availability check failed:", error.message);
       dispatch(bookingActions.checkAvailabilityFailure(error.message));
       toast.error("Failed to check availability");
       return false;
     }
   };
 }
-export function fetchVenueName(venueId) {
-  return async function fetchVenueNameThunk(dispatch) {
-    if (!venueId) {
-      toast.error("Venue ID is missing");
-      return null;
-    }
-
-    dispatch(bookingActions.fetchVenueNameStart());
-
-    try {
-      const response = await axios.get(`https://sportvenuebackend.onrender.com/api/v1/venues/${venueId}`);
-      const venueName = response.data?.data?.name;
-
-      dispatch(bookingActions.fetchVenueNameSuccess(venueName));
-      return venueName;
-    } catch (error) {
-      console.error("Fetch venue name failed:", error.message);
-      dispatch(bookingActions.fetchVenueNameFailure(error.message));
-      toast.error("Failed to fetch venue name");
-      return null;
-    }
-  };
-}
-
 
 const initialState = {
   bookings: [],
@@ -131,22 +102,19 @@ const initialState = {
   error: null,
   currentBooking: null,
   isAvailable: true,
-  venueName: '',
   status: {
     fetch: 'idle',
     create: 'idle',
     update: 'idle',
     delete: 'idle',
     checkAvailability: 'idle',
-    fetchVenueName: 'idle'
-  }
+  },
 };
 
 const bookingSlice = createSlice({
   name: 'booking',
   initialState,
   reducers: {
-    // Current booking management
     setCurrentBooking: (state, action) => {
       state.currentBooking = action.payload;
     },
@@ -156,14 +124,12 @@ const bookingSlice = createSlice({
     setUpdatedBooking: (state, action) => {
       state.currentBooking = {
         ...state.currentBooking,
-        ...action.payload
+        ...action.payload,
       };
     },
 
-    // Fetch actions
     fetchStart: (state) => {
       state.loading = true;
-      state.error = null;
       state.status.fetch = 'loading';
     },
     fetchSuccess: (state, action) => {
@@ -177,10 +143,8 @@ const bookingSlice = createSlice({
       state.status.fetch = 'failed';
     },
 
-    // Create actions
     createStart: (state) => {
       state.loading = true;
-      state.error = null;
       state.status.create = 'loading';
     },
     createSuccess: (state, action) => {
@@ -194,18 +158,15 @@ const bookingSlice = createSlice({
       state.status.create = 'failed';
     },
 
-    // Update actions
     updateStart: (state) => {
       state.loading = true;
-      state.error = null;
       state.status.update = 'loading';
     },
     updateSuccess: (state, action) => {
       state.loading = false;
-      state.bookings = state.bookings.map(booking =>
-        booking.booking_id === action.payload.booking_id ? action.payload : booking
+      state.bookings = state.bookings.map(b =>
+        b._id === action.payload._id ? action.payload : b
       );
-      state.currentBooking = null;
       state.status.update = 'succeeded';
     },
     updateFailure: (state, action) => {
@@ -214,17 +175,13 @@ const bookingSlice = createSlice({
       state.status.update = 'failed';
     },
 
-    // Delete actions
     deleteStart: (state) => {
       state.loading = true;
-      state.error = null;
       state.status.delete = 'loading';
     },
     deleteSuccess: (state, action) => {
       state.loading = false;
-      state.bookings = state.bookings.filter(
-        booking => booking.booking_id !== action.payload
-      );
+      state.bookings = state.bookings.filter(b => b._id !== action.payload);
       state.status.delete = 'succeeded';
     },
     deleteFailure: (state, action) => {
@@ -233,10 +190,8 @@ const bookingSlice = createSlice({
       state.status.delete = 'failed';
     },
 
-    // Check availability actions
     checkAvailabilityStart: (state) => {
       state.loading = true;
-      state.error = null;
       state.status.checkAvailability = 'loading';
     },
     checkAvailabilitySuccess: (state, action) => {
@@ -250,28 +205,10 @@ const bookingSlice = createSlice({
       state.status.checkAvailability = 'failed';
     },
 
-    // Fetch venue name actions
-    fetchVenueNameStart: (state) => {
-      state.loading = true;
-      state.error = null;
-      state.status.fetchVenueName = 'loading';
-    },
-    fetchVenueNameSuccess: (state, action) => {
-      state.loading = false;
-      state.venueName = action.payload;
-      state.status.fetchVenueName = 'succeeded';
-    },
-    fetchVenueNameFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-      state.status.fetchVenueName = 'failed';
-    },
-
-    // Reset status
     resetStatus: (state, action) => {
       state.status[action.payload] = 'idle';
-    }
-  }
+    },
+  },
 });
 
 export const bookingActions = bookingSlice.actions;
