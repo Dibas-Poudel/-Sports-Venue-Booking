@@ -27,7 +27,7 @@ export function createBooking({ venueName, date, time, name }) {
         date,
         time,
         name,
-      });
+      }, { withCredentials: true });
       dispatch(bookingActions.createSuccess(response.data.data));
       toast.success('Booking created successfully!');
     } catch (error) {
