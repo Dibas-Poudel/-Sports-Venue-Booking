@@ -19,21 +19,20 @@ const UserBookings = () => {
     status,
   } = useSelector((state) => state.booking);
 
-  // Fetch bookings when component mounts
+  // Fetch bookings on mount
   useEffect(() => {
     if (user?._id) {
       dispatch(fetchBookings(user._id));
     }
 
     return () => {
-      // Reset statuses on unmount
       dispatch(bookingActions.resetStatus("fetch"));
       dispatch(bookingActions.resetStatus("delete"));
       dispatch(bookingActions.resetStatus("update"));
     };
   }, [user, dispatch]);
 
-  // Clear editing form if current booking disappears
+  // Clear editing form if current booking is removed
   useEffect(() => {
     if (
       currentBooking &&
@@ -63,12 +62,11 @@ const UserBookings = () => {
         await dispatch(
           updateBooking({
             bookingId: currentBooking._id,
-            name: currentBooking.venue_name, 
+            name: currentBooking.venue_name,
             date: currentBooking.date,
             time: currentBooking.time,
           })
         ).unwrap();
-
         dispatch(bookingActions.clearCurrentBooking());
       } catch (error) {
         console.error("Failed to update booking:", error);
@@ -91,40 +89,26 @@ const UserBookings = () => {
             key={booking._id}
             className="bg-gray-700 p-4 mb-4 rounded-lg shadow-md"
           >
-            <p>
-              <strong>Venue:</strong> {booking.venue_name}
-            </p>
-            <p>
-              <strong>Date:</strong>{" "}
-              {new Date(booking.date).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Time:</strong> {booking.time}
-            </p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {booking.verified ? "✅ Verified" : "⌛ Pending"}
-            </p>
+            <p><strong>Venue:</strong> {booking.venue_name}</p>
+            <p><strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}</p>
+            <p><strong>Time:</strong> {booking.time}</p>
+            <p><strong>Total Price:</strong> Rs. {booking.total_price}</p>
+            <p><strong>Status:</strong> {booking.verified ? "✅ Verified" : "⌛ Pending"}</p>
 
             <div className="flex gap-4 mt-4">
               <button
                 onClick={() => handleEdit(booking)}
                 className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-md"
-                disabled={
-                  status.update === "loading" || status.delete === "loading"
-                }
+                disabled={status.update === "loading" || status.delete === "loading"}
               >
                 Edit
               </button>
               <button
                 onClick={() => handleDelete(booking._id)}
                 className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md"
-                disabled={
-                  status.update === "loading" || status.delete === "loading"
-                }
+                disabled={status.update === "loading" || status.delete === "loading"}
               >
-                {status.delete === "loading" &&
-                booking._id === currentBooking?._id
+                {status.delete === "loading" && booking._id === currentBooking?._id
                   ? "Deleting..."
                   : "Delete"}
               </button>
@@ -141,11 +125,7 @@ const UserBookings = () => {
             type="text"
             value={currentBooking.venue_name}
             onChange={(e) =>
-              dispatch(
-                bookingActions.setUpdatedBooking({
-                  venue_name: e.target.value,
-                })
-              )
+              dispatch(bookingActions.setUpdatedBooking({ venue_name: e.target.value }))
             }
             className="mb-2 p-2 w-full text-black rounded-md"
             placeholder="Venue Name"
@@ -155,9 +135,7 @@ const UserBookings = () => {
             type="date"
             value={new Date(currentBooking.date).toISOString().split("T")[0]}
             onChange={(e) =>
-              dispatch(
-                bookingActions.setUpdatedBooking({ date: e.target.value })
-              )
+              dispatch(bookingActions.setUpdatedBooking({ date: e.target.value }))
             }
             className="mb-2 p-2 w-full text-black rounded-md"
           />
@@ -166,9 +144,7 @@ const UserBookings = () => {
             type="text"
             value={currentBooking.time}
             onChange={(e) =>
-              dispatch(
-                bookingActions.setUpdatedBooking({ time: e.target.value })
-              )
+              dispatch(bookingActions.setUpdatedBooking({ time: e.target.value }))
             }
             className="mb-4 p-2 w-full text-black rounded-md"
             placeholder="Time"

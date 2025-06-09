@@ -2,53 +2,46 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { 
-  fetchVenueName, 
-  checkAvailability, 
-  createBooking, 
-  bookingActions
+import {
+  checkAvailability,
+  createBooking,
+  bookingActions,
+  fetchVenueName, // ✅ Added missing import
 } from "../store/slice/booking";
 
 const BookingPage = () => {
   const { game } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { 
-    venueName, 
-    isAvailable, 
-    loading, 
-    error,
-    status 
-  } = useSelector((state) => state.booking);
+
+  const { venueName, isAvailable, loading, error, status } = useSelector(
+    (state) => state.booking
+  );
   const user = useSelector((state) => state.user.profile);
 
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
-  // Fetch venue name
+  // ✅ Fetch venue name once
   useEffect(() => {
-    if (game && status.fetchVenueName === 'idle') {
+    if (game && status.fetchVenueName === "idle") {
       dispatch(fetchVenueName(game));
     }
   }, [game, dispatch, status.fetchVenueName]);
-useEffect(() => {
-  if (game) {
-    dispatch(fetchVenueName(game));
-  }
-}, [game, dispatch]);
 
-  // Check availability when date/time changes
+  // ✅ Check availability when date/time changes
   useEffect(() => {
-    if (date && time && venueName && status.checkAvailability === 'idle') {
+    if (date && time && venueName) {
       dispatch(checkAvailability({ venueName, date, time }));
     }
-  }, [date, time, venueName, dispatch, status.checkAvailability]);
+  }, [date, time, venueName, dispatch]);
 
-  // Reset status after operations
+  // ✅ Reset booking status and navigate after success
   useEffect(() => {
-    if (status.create === 'succeeded') {
-      setTimeout(() => dispatch(bookingActions.resetStatus('create')), 1000);
+    if (status.create === "succeeded") {
+      toast.success("Booking confirmed!");
+      setTimeout(() => dispatch(bookingActions.resetStatus("create")), 1000);
       navigate("/dashboard");
     }
   }, [status.create, dispatch, navigate]);
@@ -56,33 +49,48 @@ useEffect(() => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const today = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const isToday = date === today;
+    const isPastTime = isToday && time && time < now.toTimeString().slice(0, 5);
+
     if (!name || !date || !time) {
       toast.error("Please fill in all fields.");
       return;
     }
+
+    if (isPastTime) {
+      toast.error("You cannot book a past time.");
+      return;
+    }
+
     if (!isAvailable) {
       toast.error("This venue is already booked for the selected time.");
       return;
     }
+
     if (!user) {
       toast.error("Please log in to make a booking.");
       return;
     }
 
     try {
-      await dispatch(createBooking({
-        userId: user.id,
-        venueName,
-        date,
-        time,
-        name
-      })).unwrap();
+      await dispatch(
+        createBooking({
+          userId: user.id,
+          venueName,
+          date,
+          time,
+          name,
+        })
+      ).unwrap();
     } catch (error) {
+      toast.error("Failed to create booking. Please try again.");
       console.error("Booking error:", error);
     }
   };
 
-  const isLoading = loading || status.fetchVenueName === 'loading';
+  const isLoading = loading || status.fetchVenueName === "loading";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-6 py-12">
@@ -113,7 +121,7 @@ useEffect(() => {
             onChange={(e) => setName(e.target.value)}
             className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
-            disabled={status.create === 'loading'}
+            disabled={status.create === "loading"}
           />
         </div>
 
@@ -125,8 +133,8 @@ useEffect(() => {
             onChange={(e) => setDate(e.target.value)}
             className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
-            disabled={status.create === 'loading'}
-            min={new Date().toISOString().split('T')[0]}
+            disabled={status.create === "loading"}
+            min={new Date().toISOString().split("T")[0]}
           />
         </div>
 
@@ -138,7 +146,7 @@ useEffect(() => {
             onChange={(e) => setTime(e.target.value)}
             className="w-full p-3 rounded-lg bg-gray-700 text-white"
             required
-            disabled={status.create === 'loading'}
+            disabled={status.create === "loading"}
           />
         </div>
 
@@ -148,16 +156,22 @@ useEffect(() => {
           </p>
         )}
 
+        {date && time && isAvailable && (
+          <p className="text-green-400 text-center mb-4">
+            Great! The venue is available at your selected time.
+          </p>
+        )}
+
         <button
           type="submit"
-          disabled={status.create === 'loading' || !isAvailable}
+          disabled={status.create === "loading" || !isAvailable}
           className={`w-full py-3 rounded-lg font-semibold text-white ${
-            status.create === 'loading' || !isAvailable
+            status.create === "loading" || !isAvailable
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {status.create === 'loading' ? "Processing..." : "Confirm Booking"}
+          {status.create === "loading" ? "Processing..." : "Confirm Booking"}
         </button>
       </form>
     </div>
