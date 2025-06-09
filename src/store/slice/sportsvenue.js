@@ -60,7 +60,13 @@ export function fetchSingleSport(id) {
     dispatch(sportsVenueActions.fetchSingleStart());
     try {
       const response = await axios.get(`${BASE_URL}/${id}`);
-      dispatch(sportsVenueActions.fetchSingleSuccess(response.data.data));
+
+      const sport = response.data.data;
+
+      // Transform _id -> id
+      const transformedSport = { ...sport, id: sport._id };
+
+      dispatch(sportsVenueActions.fetchSingleSuccess(transformedSport));
     } catch (error) {
       dispatch(sportsVenueActions.fetchSingleFailure(error.message));
       toast.error("Error fetching the sport");
