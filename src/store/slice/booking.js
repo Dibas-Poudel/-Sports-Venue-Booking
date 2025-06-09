@@ -9,7 +9,6 @@ export function fetchBookings(userId) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${userId}`);
-      // Assuming your backend has a route like GET /api/bookings/user/:userId
       dispatch(bookingActions.fetchSuccess(response.data.data)); // adjust if your backend response shape differs
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
@@ -44,12 +43,13 @@ export function updateBooking({ bookingId, venueName, date, time, name }) {
   return async function updateBookingThunk(dispatch) {
     dispatch(bookingActions.updateStart());
     try {
-      const response = await axios.put(`${BASE_URL}/${bookingId}`, {
-        venue_name: venueName,
-        date,
-        time,
-        name,
-      });
+      const response = await axios.patch(`${BASE_URL}/edit/${bookingId}`, {
+          venue_name: venueName,
+          date,
+          time,
+          name,
+});
+
       dispatch(bookingActions.updateSuccess(response.data.data));
       toast.success('Booking updated successfully!');
     } catch (error) {
