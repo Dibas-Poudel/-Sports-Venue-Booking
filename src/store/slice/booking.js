@@ -47,6 +47,8 @@ export function updateBooking({ bookingId, name, date, time }) {
         name,
         date,
         time,
+      },{
+        withCredentials:true,
       });
       dispatch(bookingActions.updateSuccess(response.data.data));
       toast.success('Booking updated successfully!');
@@ -61,7 +63,9 @@ export function deleteBooking(bookingId) {
   return async function (dispatch) {
     dispatch(bookingActions.deleteStart());
     try {
-      await axios.delete(`${BASE_URL}/delete/${bookingId}`); 
+      await axios.delete(`${BASE_URL}/delete/${bookingId},`,{
+        withCredentials:true,
+      }); 
       dispatch(bookingActions.deleteSuccess(bookingId));
       toast.success('Booking deleted successfully!');
     } catch (error) {
