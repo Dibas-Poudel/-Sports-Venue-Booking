@@ -39,17 +39,15 @@ export function createBooking({ userId, venueName, date, time, name }) {
 }
 
 
-export function updateBooking({ bookingId, venueName, date, time, name }) {
+export function updateBooking({ bookingId, name, date, time }) {
   return async function updateBookingThunk(dispatch) {
     dispatch(bookingActions.updateStart());
     try {
       const response = await axios.patch(`${BASE_URL}/edit/${bookingId}`, {
-          venue_name: venueName,
-          date,
-          time,
-          name,
-});
-
+        name,
+        date,
+        time,
+      });
       dispatch(bookingActions.updateSuccess(response.data.data));
       toast.success('Booking updated successfully!');
     } catch (error) {
@@ -58,6 +56,7 @@ export function updateBooking({ bookingId, venueName, date, time, name }) {
     }
   };
 }
+
 
 
 export function deleteBooking(bookingId) {

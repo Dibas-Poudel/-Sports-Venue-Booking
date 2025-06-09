@@ -46,22 +46,23 @@ const UserBookings = () => {
     dispatch(bookingActions.setCurrentBooking(booking));
   };
 
-  const handleUpdate = async () => {
-    if (currentBooking) {
-      try {
-        await dispatch(updateBooking({
-          bookingId: currentBooking.booking_id,
-          venueName: currentBooking.venue_name,
-          date: currentBooking.date,
-          time: currentBooking.time
-        })).unwrap();
-        
-        dispatch(bookingActions.clearCurrentBooking());
-      } catch (error) {
-        console.error("Failed to update booking:", error);
-      }
+const handleUpdate = async () => {
+  if (currentBooking) {
+    try {
+      await dispatch(updateBooking({
+        bookingId: currentBooking._id, // assuming _id from MongoDB
+        name: currentBooking.venue_name, // send as `name` to backend
+        date: currentBooking.date,
+        time: currentBooking.time,
+      })).unwrap();
+      
+      dispatch(bookingActions.clearCurrentBooking());
+    } catch (error) {
+      console.error("Failed to update booking:", error);
     }
-  };
+  }
+};
+
 
   if (loading && status.fetch === 'loading') return <Spinner />;
   if (error) return <div className="text-red-500">{error}</div>;
