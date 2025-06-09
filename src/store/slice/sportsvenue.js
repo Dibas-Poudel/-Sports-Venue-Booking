@@ -69,6 +69,8 @@ export function fetchSingleSport(id) {
 }
 
 
+
+
 const initialState = {
   outdoorSports: [],
   indoorSports: [],
