@@ -61,7 +61,7 @@ export function deleteBooking(bookingId) {
   return async function (dispatch) {
     dispatch(bookingActions.deleteStart());
     try {
-      await axios.delete(`${BASE_URL}/${bookingId}`);
+      await axios.delete(`${BASE_URL}/delete/${bookingId}`); 
       dispatch(bookingActions.deleteSuccess(bookingId));
       toast.success('Booking deleted successfully!');
     } catch (error) {
@@ -70,6 +70,7 @@ export function deleteBooking(bookingId) {
     }
   };
 }
+
 
 export function checkAvailability({ venueName, date, time }) {
   return async function (dispatch) {
