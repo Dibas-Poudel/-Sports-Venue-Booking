@@ -18,7 +18,7 @@ export function fetchBookings(userId) {
   };
 }
 
-export function createBooking({ venueName, date, time, name, sportVenueId }) {
+export function createBooking({ venueName, date, time, name }) {
   return async function (dispatch) {
     dispatch(bookingActions.createStart());
     try {
@@ -27,7 +27,6 @@ export function createBooking({ venueName, date, time, name, sportVenueId }) {
         date,
         time,
         name,
-        sportVenueId,
       });
       dispatch(bookingActions.createSuccess(response.data.data));
       toast.success('Booking created successfully!');
