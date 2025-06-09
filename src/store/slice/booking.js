@@ -100,7 +100,7 @@ export function fetchVenueName(venueId) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${venueId}`);
-      const venueName = response.data.data.name; 
+      const venueName = response.data.name; 
       dispatch(bookingActions.fetchNameSuccess(venueName)); 
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
