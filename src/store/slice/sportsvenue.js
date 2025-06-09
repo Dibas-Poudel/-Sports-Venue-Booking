@@ -10,7 +10,7 @@ export function fetchOutdoorSports() {
     try {
       const response = await axios.get(`${BASE_URL}/`);
       const outdoorGames = response.data.data.filter(
-        (game) => game.type === "Outdoor"
+        (game) => game.type === "OUTDOOR"
       );
       dispatch(sportsVenueActions.fetchOutdoorSuccess(outdoorGames));
     } catch (error) {
@@ -27,7 +27,7 @@ export function fetchIndoorSports() {
     try {
       const response = await axios.get(`${BASE_URL}/`);
       const indoorGames = response.data.data.filter(
-        (game) => game.type === "Indoor"
+        (game) => game.type === "INDOOR"
       );
       dispatch(sportsVenueActions.fetchIndoorSuccess(indoorGames));
     } catch (error) {
@@ -44,7 +44,7 @@ export function fetchPlaystationSports() {
     try {
       const response = await axios.get(`${BASE_URL}/`);
       const playstationGames = response.data.data.filter(
-        (game) => game.type === "PlayStation"
+        (game) => game.type === "PLAYSTATION"
       );
       dispatch(sportsVenueActions.fetchPlaystationSuccess(playstationGames));
     } catch (error) {
