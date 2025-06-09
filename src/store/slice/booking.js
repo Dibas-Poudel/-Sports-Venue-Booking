@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {  createSlice } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
@@ -95,20 +95,19 @@ export function checkAvailability({ venueName, date, time }) {
     }
   };
 };
-
-export const fetchVenueName = createAsyncThunk(
-  "booking/fetchVenueName",
-  async (venueId, { rejectWithValue }) => {
+export function fetchVenueById(venueId) {
+  return async function (dispatch) {
+    dispatch(bookingActions.fetchStart());
     try {
-      const response = await axios.get(`${BASE_URL}/api/v1/sports/${venueId}`);
-      return response.data.data.name; 
+      const response = await axios.get(`${BASE_URL}/${venueId}`);
+      dispatch(bookingActions.fetchSuccess(response.data.data)); 
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch venue name"
-      );
+      dispatch(bookingActions.fetchFailure(error.message));
+      toast.error("Failed to fetch venue details");
     }
-  }
-);
+  };
+}
+
 
 
 
