@@ -9,7 +9,9 @@ export function fetchBookings(userId) {
   return async function (dispatch) {
     dispatch(bookingActions.fetchStart());
     try {
-      const response = await axios.get(`${BASE_URL}/${userId}`);
+      const response = await axios.get(`${BASE_URL}/${userId}`,{
+        withCredentials:true,
+      });
       dispatch(bookingActions.fetchSuccess(response.data.data));
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
