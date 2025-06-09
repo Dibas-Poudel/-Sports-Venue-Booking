@@ -9,7 +9,8 @@ export function fetchBookings(userId) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${userId}`);
-      dispatch(bookingActions.fetchSuccess(response.data.data)); 
+      // Assuming your backend has a route like GET /api/bookings/user/:userId
+      dispatch(bookingActions.fetchSuccess(response.data.data)); // adjust if your backend response shape differs
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
       toast.error('Failed to fetch bookings');
@@ -72,6 +73,59 @@ export function deleteBooking(bookingId) {
     }
   };
 }
+
+
+export function checkAvailability({ venueName, date, time }) {
+  return async function checkAvailabilityThunk(dispatch) {
+    if (!venueName || !date || !time) {
+      toast.error('Invalid availability check parameters');
+      return false;
+    }
+
+    dispatch(bookingActions.checkAvailabilityStart());
+
+    try {
+      const response = await axios.post(`${BASE_URL}/check-availability`, {
+        venueName,
+        date,
+        time,
+      });
+
+      const isAvailable = response.data.isAvailable; // boolean returned from backend
+      dispatch(bookingActions.checkAvailabilitySuccess(isAvailable));
+      return isAvailable;
+    } catch (error) {
+      console.error("Availability check failed:", error.message);
+      dispatch(bookingActions.checkAvailabilityFailure(error.message));
+      toast.error("Failed to check availability");
+      return false;
+    }
+  };
+}
+export function fetchVenueName(venueId) {
+  return async function fetchVenueNameThunk(dispatch) {
+    if (!venueId) {
+      toast.error("Venue ID is missing");
+      return null;
+    }
+
+    dispatch(bookingActions.fetchVenueNameStart());
+
+    try {
+      const response = await axios.get(`https://sportvenuebackend.onrender.com/api/v1/venues/${venueId}`);
+      const venueName = response.data?.data?.name;
+
+      dispatch(bookingActions.fetchVenueNameSuccess(venueName));
+      return venueName;
+    } catch (error) {
+      console.error("Fetch venue name failed:", error.message);
+      dispatch(bookingActions.fetchVenueNameFailure(error.message));
+      toast.error("Failed to fetch venue name");
+      return null;
+    }
+  };
+}
+
 
 const initialState = {
   bookings: [],
