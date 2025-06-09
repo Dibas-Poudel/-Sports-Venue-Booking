@@ -100,8 +100,10 @@ export function fetchVenueName(venueId) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${venueId}`);
-      const venueName = response.data.name; 
-      dispatch(bookingActions.fetchNameSuccess(venueName)); 
+      // Fix here:
+      const venueName = response.data.data.name; 
+
+      dispatch(bookingActions.fetchNameSuccess(venueName));
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
       toast.error("Failed to fetch venue details");
@@ -113,17 +115,20 @@ export function fetchVenueName(venueId) {
 
 
 
+
 const initialState = {
   bookings: [],
   loading: false,
   error: null,
   currentBooking: null,
   isAvailable: true,
+   venueName: "",
   status: {
     fetch: 'idle',
     create: 'idle',
     update: 'idle',
     delete: 'idle',
+    fetchVenueName: 'idle',
     checkAvailability: 'idle',
   },
 };
