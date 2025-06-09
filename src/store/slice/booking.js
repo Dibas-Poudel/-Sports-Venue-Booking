@@ -95,7 +95,7 @@ export function checkAvailability({ venueName, date, time }) {
     }
   };
 };
-export function fetchVenueById(venueId) {
+export function fetchVenueName(venueId) {
   return async function (dispatch) {
     dispatch(bookingActions.fetchStart());
     try {
