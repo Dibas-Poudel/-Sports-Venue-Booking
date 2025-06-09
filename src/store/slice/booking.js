@@ -100,13 +100,15 @@ export function fetchVenueName(venueId) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${venueId}`);
-      dispatch(bookingActions.fetchSuccess(response.data.data)); 
+      const venueName = response.data.data.name; 
+      dispatch(bookingActions.fetchNameSuccess(venueName)); 
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
       toast.error("Failed to fetch venue details");
     }
   };
 }
+
 
 
 
@@ -152,6 +154,13 @@ const bookingSlice = createSlice({
       state.bookings = action.payload;
       state.status.fetch = 'succeeded';
     },
+    fetchNameSuccess: (state, action) => {
+      state.loading = false;
+      state.venueName = action.payload; 
+      state.status.fetchVenueName = "succeeded";
+    },
+
+    
     fetchFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
