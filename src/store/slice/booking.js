@@ -5,11 +5,11 @@ import axios from 'axios';
 const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1/bookings";
 
 // Thunks
-export function fetchBookings(userId) {
+export function fetchBookings() {
   return async function (dispatch) {
     dispatch(bookingActions.fetchStart());
     try {
-      const response = await axios.get(`${BASE_URL}/${userId}`,{
+      const response = await axios.get(`${BASE_URL}/fetch`,{
         withCredentials:true,
       });
       dispatch(bookingActions.fetchSuccess(response.data.data));
