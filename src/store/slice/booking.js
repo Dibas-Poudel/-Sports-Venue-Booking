@@ -9,7 +9,7 @@ export function fetchBookings(userId) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${userId}`);
-      dispatch(bookingActions.fetchSuccess(response.data.data)); // adjust if your backend response shape differs
+      dispatch(bookingActions.fetchSuccess(response.data.data));
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
       toast.error('Failed to fetch bookings');
@@ -18,12 +18,11 @@ export function fetchBookings(userId) {
 }
 
 
-export function createBooking({ userId, venueName, date, time, name }) {
+export function createBooking({  venueName, date, time, name }) {
   return async function createBookingThunk(dispatch) {
     dispatch(bookingActions.createStart());
     try {
       const response = await axios.post(BASE_URL, {
-        userId,
         venue_name: venueName,
         date,
         time,

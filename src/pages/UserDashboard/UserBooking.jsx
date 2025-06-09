@@ -63,7 +63,7 @@ const UserBookings = () => {
         await dispatch(
           updateBooking({
             bookingId: currentBooking._id,
-            name: currentBooking.venue_name, // backend expects "name"
+            name: currentBooking.venue_name, 
             date: currentBooking.date,
             time: currentBooking.time,
           })
