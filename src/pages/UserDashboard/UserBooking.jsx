@@ -21,7 +21,7 @@ const UserBookings = () => {
 
   useEffect(() => {
     if (user?.id) {
-      dispatch(fetchBookings(user.id));
+      dispatch(fetchBookings(user._id));
     }
 
     return () => {

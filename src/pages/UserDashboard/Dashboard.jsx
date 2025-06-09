@@ -27,10 +27,10 @@ const Dashboard = () => {
 
   // Fetch wishlist items for the logged-in user
   useEffect(() => {
-    if (user?.id && fetchStatus === 'idle') {
-      dispatch(fetchWishlist(user.id));
+    if (user?._id && fetchStatus === 'idle') {
+      dispatch(fetchWishlist(user._id));
     }
-  }, [user?.id, dispatch, fetchStatus]);
+  }, [user?._id, dispatch, fetchStatus]);
 
   // Handle adding/removing items to/from the wishlist
   const handleWishlistToggle = async (venueId) => {
