@@ -63,7 +63,7 @@ export function deleteBooking(bookingId) {
   return async function (dispatch) {
     dispatch(bookingActions.deleteStart());
     try {
-      await axios.delete(`${BASE_URL}/delete/${bookingId},`,{
+      await axios.delete(`${BASE_URL}/delete/${bookingId}`,{
         withCredentials:true,
       }); 
       dispatch(bookingActions.deleteSuccess(bookingId));
