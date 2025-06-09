@@ -22,7 +22,7 @@ export function createBooking({ venueName, date, time, name }) {
   return async function (dispatch) {
     dispatch(bookingActions.createStart());
     try {
-      const response = await axios.post(BASE_URL, {
+      const response = await axios.post("${BASE_URL}/:venueId", {
         venueName,
         date,
         time,
