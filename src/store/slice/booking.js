@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
@@ -94,7 +94,23 @@ export function checkAvailability({ venueName, date, time }) {
       return false;
     }
   };
-}
+};
+
+export const fetchVenueName = createAsyncThunk(
+  "booking/fetchVenueName",
+  async (venueId, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`/api/v1/venues/${venueId}`);
+      return response.data.data.name; 
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch venue name"
+      );
+    }
+  }
+);
+
+
 
 const initialState = {
   bookings: [],

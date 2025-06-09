@@ -6,7 +6,7 @@ import {
   checkAvailability,
   createBooking,
   bookingActions,
-  fetchVenueName, // ✅ Added missing import
+  fetchVenueName, 
 } from "../store/slice/booking";
 
 const BookingPage = () => {
