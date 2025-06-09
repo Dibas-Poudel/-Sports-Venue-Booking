@@ -100,7 +100,7 @@ export const fetchVenueName = createAsyncThunk(
   "booking/fetchVenueName",
   async (venueId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/v1/venues/${venueId}`);
+      const response = await axios.get(`${BASE_URL}/api/v1/sports/${venueId}`);
       return response.data.data.name; 
     } catch (error) {
       return rejectWithValue(
