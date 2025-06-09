@@ -1,19 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
-import supabase from "../../services/supabaseClient";
 import { toast } from "react-toastify";
+import axios from "axios";
 
-// Action creators
+const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1/sports"; 
+// Fetch Outdoor Sports
 export function fetchOutdoorSports() {
-  return async function fetchOutdoorSportsThunk(dispatch) {
+  return async function (dispatch) {
     dispatch(sportsVenueActions.fetchOutdoorStart());
     try {
-      const { data, error } = await supabase
-        .from("sports_venues")
-        .select("*")
-        .eq("type", "Outdoor");
-
-      if (error) throw error;
-      dispatch(sportsVenueActions.fetchOutdoorSuccess(data));
+      const response = await axios.get(`${BASE_URL}/`);
+      const outdoorGames = response.data.data.filter(
+        (game) => game.type === "Outdoor"
+      );
+      dispatch(sportsVenueActions.fetchOutdoorSuccess(outdoorGames));
     } catch (error) {
       dispatch(sportsVenueActions.fetchOutdoorFailure(error.message));
       toast.error("Error fetching outdoor sports");
@@ -21,17 +20,16 @@ export function fetchOutdoorSports() {
   };
 }
 
+// Fetch Indoor Sports
 export function fetchIndoorSports() {
-  return async function fetchIndoorSportsThunk(dispatch) {
+  return async function (dispatch) {
     dispatch(sportsVenueActions.fetchIndoorStart());
     try {
-      const { data, error } = await supabase
-        .from("sports_venues")
-        .select("*")
-        .eq("type", "Indoor");
-
-      if (error) throw error;
-      dispatch(sportsVenueActions.fetchIndoorSuccess(data));
+      const response = await axios.get(`${BASE_URL}/`);
+      const indoorGames = response.data.data.filter(
+        (game) => game.type === "Indoor"
+      );
+      dispatch(sportsVenueActions.fetchIndoorSuccess(indoorGames));
     } catch (error) {
       dispatch(sportsVenueActions.fetchIndoorFailure(error.message));
       toast.error("Error fetching indoor sports");
@@ -39,18 +37,16 @@ export function fetchIndoorSports() {
   };
 }
 
-
+// Fetch PlayStation Sports
 export function fetchPlaystationSports() {
-  return async function fetchPlaystationSportsThunk(dispatch) {
+  return async function (dispatch) {
     dispatch(sportsVenueActions.fetchPlaystationStart());
     try {
-      const { data, error } = await supabase
-        .from("sports_venues")
-        .select("*")
-        .eq("type", "PlayStation");
-
-      if (error) throw error;
-      dispatch(sportsVenueActions.fetchPlaystationSuccess(data));
+      const response = await axios.get(`${BASE_URL}/`);
+      const playstationGames = response.data.data.filter(
+        (game) => game.type === "PlayStation"
+      );
+      dispatch(sportsVenueActions.fetchPlaystationSuccess(playstationGames));
     } catch (error) {
       dispatch(sportsVenueActions.fetchPlaystationFailure(error.message));
       toast.error("Error fetching PlayStation games");
@@ -58,23 +54,20 @@ export function fetchPlaystationSports() {
   };
 }
 
+// Fetch Single Sport by ID
 export function fetchSingleSport(id) {
-  return async function fetchSingleSportThunk(dispatch) {
+  return async function (dispatch) {
     dispatch(sportsVenueActions.fetchSingleStart());
     try {
-      const { data, error } = await supabase
-        .from("sports_venues")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-      dispatch(sportsVenueActions.fetchSingleSuccess(data));
+      const response = await axios.get(`${BASE_URL}/${id}`);
+      dispatch(sportsVenueActions.fetchSingleSuccess(response.data.data));
     } catch (error) {
       dispatch(sportsVenueActions.fetchSingleFailure(error.message));
+      toast.error("Error fetching the sport");
     }
   };
 }
+
 
 const initialState = {
   outdoorSports: [],

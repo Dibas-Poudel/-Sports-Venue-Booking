@@ -30,7 +30,7 @@ const Login = () => {
       navigate("/games");
       dispatch(resetLoginStatus());
     }
-  }, [loginStatus, navigate]);
+  }, [loginStatus, navigate,dispatch]);
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
