@@ -43,7 +43,7 @@ const IndoorGames = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {indoorSports.map((sport) => (
               <Link
-                to={`/sports/${sport.id}`}
+                to={`/sports/${sport._id}`}
                 key={sport.id}
                 className="block relative group overflow-hidden rounded-lg shadow-lg bg-gray-800 hover:bg-gray-700 transition duration-300"
               >
