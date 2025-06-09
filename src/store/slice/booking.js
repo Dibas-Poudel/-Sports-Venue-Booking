@@ -1,20 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
-import supabase from '../../services/supabaseClient';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
+const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1/bookings"
 // Action creators
 export function fetchBookings(userId) {
   return async function fetchBookingsThunk(dispatch) {
     dispatch(bookingActions.fetchStart());
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-      dispatch(bookingActions.fetchSuccess(data));
+      const response = await axios.get(`${BASE_URL}/${userId}`);
+      dispatch(bookingActions.fetchSuccess(response.data.data)); 
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
       toast.error('Failed to fetch bookings');
@@ -22,17 +17,19 @@ export function fetchBookings(userId) {
   };
 }
 
-export function createBooking({ userId, venueName, date, time,name }) {
+
+export function createBooking({ userId, venueName, date, time, name }) {
   return async function createBookingThunk(dispatch) {
     dispatch(bookingActions.createStart());
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert([{ user_id: userId, venue_name: venueName, date, time,name }])
-        .select();
-
-      if (error) throw error;
-      dispatch(bookingActions.createSuccess(data[0]));
+      const response = await axios.post(BASE_URL, {
+        userId,
+        venue_name: venueName,
+        date,
+        time,
+        name,
+      });
+      dispatch(bookingActions.createSuccess(response.data.data));
       toast.success('Booking created successfully!');
     } catch (error) {
       dispatch(bookingActions.createFailure(error.message));
@@ -41,18 +38,18 @@ export function createBooking({ userId, venueName, date, time,name }) {
   };
 }
 
-export function updateBooking({ bookingId, venueName, date, time,name }) {
+
+export function updateBooking({ bookingId, venueName, date, time, name }) {
   return async function updateBookingThunk(dispatch) {
     dispatch(bookingActions.updateStart());
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .update({ venue_name: venueName, date, time,name })
-        .eq('booking_id', bookingId)
-        .select();
-
-      if (error) throw error;
-      dispatch(bookingActions.updateSuccess(data[0]));
+      const response = await axios.put(`${BASE_URL}/${bookingId}`, {
+        venue_name: venueName,
+        date,
+        time,
+        name,
+      });
+      dispatch(bookingActions.updateSuccess(response.data.data));
       toast.success('Booking updated successfully!');
     } catch (error) {
       dispatch(bookingActions.updateFailure(error.message));
@@ -61,64 +58,17 @@ export function updateBooking({ bookingId, venueName, date, time,name }) {
   };
 }
 
+
 export function deleteBooking(bookingId) {
   return async function deleteBookingThunk(dispatch) {
     dispatch(bookingActions.deleteStart());
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .delete()
-        .eq('booking_id', bookingId);
-
-      if (error) throw error;
+      await axios.delete(`${BASE_URL}/${bookingId}`);
       dispatch(bookingActions.deleteSuccess(bookingId));
       toast.success('Booking deleted successfully!');
     } catch (error) {
       dispatch(bookingActions.deleteFailure(error.message));
       toast.error('Failed to delete booking');
-    }
-  };
-}
-
-export function checkAvailability({ venueName, date, time }) {
-  return async function checkAvailabilityThunk(dispatch) {
-    dispatch(bookingActions.checkAvailabilityStart());
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('venue_name', venueName)
-        .eq('date', date)
-        .eq('time', time);
-
-      if (error) throw error;
-      dispatch(bookingActions.checkAvailabilitySuccess(data.length === 0));
-      return data.length === 0;
-    } catch (error) {
-      dispatch(bookingActions.checkAvailabilityFailure(error.message));
-      toast.error('Failed to check availability');
-      return false;
-    }
-  };
-}
-
-export function fetchVenueName(venueId) {
-  return async function fetchVenueNameThunk(dispatch) {
-    dispatch(bookingActions.fetchVenueNameStart());
-    try {
-      const { data, error } = await supabase
-        .from('sports_venues')
-        .select('name')
-        .eq('id', venueId)
-        .single();
-
-      if (error) throw error;
-      dispatch(bookingActions.fetchVenueNameSuccess(data?.name));
-      return data?.name;
-    } catch (error) {
-      dispatch(bookingActions.fetchVenueNameFailure(error.message));
-      toast.error('Failed to fetch venue name');
-      return null;
     }
   };
 }
