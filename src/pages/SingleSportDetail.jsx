@@ -5,13 +5,13 @@ import { toast } from "react-toastify";
 import {
   fetchSingleSport,
   sportsVenueActions,
-} from "../redux/slices/sportsVenueSlice";
+} from "../store/slice/sportsvenue.js";
 import {
   fetchWishlist,
   addToWishlist,
   removeFromWishlist,
   wishlistActions,
-} from "../redux/slices/wishlistSlice";
+} from "../store/slice/wishlist.js";
 
 const SingleSportDetail = () => {
   const dispatch = useDispatch();
