@@ -2,7 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSingleSport, sportsVenueActions } from "../store/slice/sportsvenue";
-import { fetchWishlist, addToWishlist, removeFromWishlist, wishlistActions } from "../store/slice/wishlist";
+import {
+  fetchWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  wishlistActions,
+} from "../store/slice/wishlist";
 import Spinner from "../components/Spinner";
 import Reviews from "./Reviews";
 import { toast } from "react-toastify";
@@ -11,34 +16,53 @@ const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const { wishlist = [], loading: wishlistLoading, addStatus, removeStatus } = useSelector(state => state.wishlist);
-  const { singleSport, loading: sportLoading, singleStatus } = useSelector(state => state.sportsVenue);
-  const user = useSelector(state => state.user.profile);
+  const {
+    wishlist = [],
+    fetchStatus,
+    loading: wishlistLoading,
+    addStatus,
+    removeStatus,
+  } = useSelector((state) => state.wishlist);
+  const { singleSport, loading: sportLoading, singleStatus } = useSelector(
+    (state) => state.sportsVenue
+  );
+  const user = useSelector((state) => state.user.profile);
 
-  // Local state to disable wishlist button only during processing of this item
   const [processing, setProcessing] = useState(false);
+  const [wishlistReady, setWishlistReady] = useState(false);
 
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
+
     if (user?.id) {
-      dispatch(fetchWishlist());
+      dispatch(fetchWishlist()).then(() => setWishlistReady(true));
+    } else {
+      setWishlistReady(true); // allow UI even if user not logged in
     }
+
     return () => {
       dispatch(sportsVenueActions.clearSingleSport());
     };
   }, [id, dispatch, user?.id]);
 
-const isWishlisted = useMemo(() => {
-  return Array.isArray(wishlist) && wishlist.some(
-    (item) => item.sportVenueId?._id?.toString() === id.toString()
-  );
-}, [wishlist, id]);
+  const isWishlisted = useMemo(() => {
+    return (
+      wishlistReady &&
+      Array.isArray(wishlist) &&
+      wishlist.some(
+        (item) => item.sportVenueId?._id?.toString() === id?.toString()
+      )
+    );
+  }, [wishlist, id, wishlistReady]);
+
   const handleWishlistToggle = () => {
     if (!user) {
       toast.warn("Please log in to modify wishlist");
       return;
     }
+
+    if (!wishlistReady) return;
 
     setProcessing(true);
 
@@ -49,7 +73,6 @@ const isWishlisted = useMemo(() => {
     }
   };
 
-  // Listen for add/remove success/failure and react accordingly
   useEffect(() => {
     if (addStatus === "succeeded") {
       toast.success("Added to wishlist");
@@ -74,7 +97,8 @@ const isWishlisted = useMemo(() => {
     }
   }, [removeStatus, dispatch]);
 
-  if (sportLoading || singleStatus === "loading") return <Spinner />;
+  if (sportLoading || singleStatus === "loading" || !wishlistReady)
+    return <Spinner />;
   if (!singleSport || singleStatus === "failed")
     return <p className="text-red-500 text-center">Sport not found.</p>;
 
@@ -89,7 +113,9 @@ const isWishlisted = useMemo(() => {
           />
           <h2 className="text-3xl font-bold mb-4">{singleSport.name}</h2>
           <p className="text-gray-300 mb-4">{singleSport.description}</p>
-          <p className="text-lg font-semibold mb-6">Price: Rs {singleSport.price}</p>
+          <p className="text-lg font-semibold mb-6">
+            Price: Rs {singleSport.price}
+          </p>
 
           <div className="flex gap-4">
             <Link
@@ -102,9 +128,11 @@ const isWishlisted = useMemo(() => {
             {user ? (
               <button
                 onClick={handleWishlistToggle}
-                disabled={processing}
+                disabled={processing || !wishlistReady}
                 className={`${
-                  isWishlisted ? "bg-red-600 hover:bg-red-700" : "bg-gray-600 hover:bg-gray-700"
+                  isWishlisted
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-gray-600 hover:bg-gray-700"
                 } text-white py-2 px-6 rounded-lg transition-all duration-300`}
               >
                 {processing
@@ -114,7 +142,9 @@ const isWishlisted = useMemo(() => {
                   : "❤️ Add to Wishlist"}
               </button>
             ) : (
-              <p className="text-red-500 font-semibold mt-4">Please log in to add to wishlist</p>
+              <p className="text-red-500 font-semibold mt-4">
+                Please log in to add to wishlist
+              </p>
             )}
           </div>
         </div>
