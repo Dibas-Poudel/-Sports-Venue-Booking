@@ -86,7 +86,7 @@ const Reviews = ({ venueId, user }) => {
           <div key={review._id} className="bg-gray-800 p-4 rounded-lg">
             <p className="text-sm text-gray-400">{review.email}</p>
             <p>{review.comment}</p>
-            {user?.id === review.userId && (
+            {user?.id === review.userId?._id && (
               <div className="mt-2 flex gap-2">
                 <button onClick={() => handleEditReview(review)} className="text-blue-500 hover:text-blue-400 text-sm">
                   Edit
@@ -95,7 +95,7 @@ const Reviews = ({ venueId, user }) => {
                   Delete
                 </button>
               </div>
-)}
+            )}
           </div>
         ))
       ) : (
