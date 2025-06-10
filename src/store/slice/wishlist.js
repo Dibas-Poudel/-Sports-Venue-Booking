@@ -73,6 +73,8 @@ const wishlistSlice = createSlice({
   },
 });
 
+export const wishlistActions = wishlistSlice.actions;
+
 export const {
   fetchWishlistStart,
   fetchWishlistSuccess,
@@ -89,7 +91,7 @@ export const {
 
 export default wishlistSlice.reducer;
 
-// Thunk actions
+// Thunk async actions
 
 export const fetchWishlist = () => async (dispatch) => {
   dispatch(fetchWishlistStart());
