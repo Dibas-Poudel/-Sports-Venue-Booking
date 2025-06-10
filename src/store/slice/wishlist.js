@@ -54,6 +54,8 @@ const wishlistSlice = createSlice({
   },
 });
 
+export const wishlistActions = wishlistSlice.actions; // <-- Export all actions here
+
 export const {
   fetchWishlistStart,
   fetchWishlistSuccess,
@@ -68,7 +70,7 @@ export const {
 
 export default wishlistSlice.reducer;
 
-// Async Thunks (manual)
+// Async Thunks
 
 export const fetchWishlist = () => async (dispatch) => {
   dispatch(fetchWishlistStart());

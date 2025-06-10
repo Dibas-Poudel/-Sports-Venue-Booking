@@ -8,7 +8,6 @@ import {
   fetchWishlist,
   addToWishlist,
   removeFromWishlist,
-  wishlistActions
 } from '../../store/slice/wishlist';
 
 const Dashboard = () => {
@@ -16,24 +15,16 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const user = useSelector((state) => state.user.profile);
-  const {
-    items: wishlist,
-    loading,
-    addStatus,
-    removeStatus,
-    fetchStatus
-  } = useSelector((state) => state.wishlist);
+  const { wishlist, loading } = useSelector((state) => state.wishlist);
 
   const [processingId, setProcessingId] = useState(null);
 
-  // Fetch wishlist items once when user is available and fetchStatus is idle
   useEffect(() => {
-    if (user?._id && fetchStatus === 'idle') {
+    if (user?._id) {
       dispatch(fetchWishlist());
     }
-  }, [user?._id, dispatch, fetchStatus]);
+  }, [user?._id, dispatch]);
 
-  // Handle wishlist toggle
   const handleWishlistToggle = (venueId) => {
     if (!user?._id) {
       toast.error('Please log in to modify wishlist');
@@ -42,32 +33,20 @@ const Dashboard = () => {
 
     setProcessingId(venueId);
 
-    const isWishlisted = wishlist.some(item => item.venue_id === venueId);
+    const isWishlisted = wishlist.some(item => item.sportVenueId === venueId);
 
     if (isWishlisted) {
-      dispatch(removeFromWishlist(venueId));
+      dispatch(removeFromWishlist(venueId)).finally(() => setProcessingId(null));
     } else {
-      dispatch(addToWishlist(venueId));
+      dispatch(addToWishlist(venueId)).finally(() => setProcessingId(null));
     }
   };
-
-  // Reset statuses and clear processingId after wishlist add/remove completes
-  useEffect(() => {
-    if (addStatus === 'succeeded' || addStatus === 'failed') {
-      dispatch(wishlistActions.resetAddStatus());
-      setProcessingId(null);
-    }
-    if (removeStatus === 'succeeded' || removeStatus === 'failed') {
-      dispatch(wishlistActions.resetRemoveStatus());
-      setProcessingId(null);
-    }
-  }, [addStatus, removeStatus, dispatch]);
 
   const handleBookNow = () => {
     navigate('/games');
   };
 
-  if (loading && fetchStatus === 'loading') return <Spinner />;
+  if (loading && wishlist.length === 0) return <Spinner />;
 
   if (!user) {
     return (
@@ -103,25 +82,25 @@ const Dashboard = () => {
           {wishlist.length === 0 ? (
             <p className="text-gray-400">Your wishlist is empty.</p>
           ) : (
-            wishlist.map(({ venue_id, sports_venues }) => (
+            wishlist.map(({ sportVenueId, sportVenueId: sportsVenue }) => (
               <div
-                key={venue_id}
+                key={sportVenueId}
                 className="bg-gray-800 p-4 rounded-xl shadow-md flex justify-between items-center"
               >
                 <div>
-                  <h3 className="text-xl font-semibold">{sports_venues?.name}</h3>
-                  <p className="text-sm text-gray-400">{sports_venues?.description}</p>
-                  <p className="text-lg font-semibold mt-2">Rs {sports_venues?.price}</p>
+                  <h3 className="text-xl font-semibold">{sportsVenue?.name}</h3>
+                  <p className="text-sm text-gray-400">{sportsVenue?.description}</p>
+                  <p className="text-lg font-semibold mt-2">Rs {sportsVenue?.price}</p>
                 </div>
 
                 <button
-                  onClick={() => handleWishlistToggle(venue_id)}
-                  disabled={processingId === venue_id}
+                  onClick={() => handleWishlistToggle(sportVenueId)}
+                  disabled={processingId === sportVenueId}
                   className={`px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg ${
-                    processingId === venue_id ? 'opacity-70 cursor-not-allowed' : ''
+                    processingId === sportVenueId ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
                 >
-                  {processingId === venue_id ? 'Processing...' : 'Remove from Wishlist'}
+                  {processingId === sportVenueId ? 'Processing...' : 'Remove from Wishlist'}
                 </button>
               </div>
             ))
