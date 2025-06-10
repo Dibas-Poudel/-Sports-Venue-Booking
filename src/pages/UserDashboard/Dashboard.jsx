@@ -17,6 +17,7 @@ const Dashboard = () => {
 
   const user = useSelector((state) => state.user.profile);
 
+  // Destructure wishlist slice state
   const {
     wishlist = [],
     loading = false,
@@ -25,13 +26,33 @@ const Dashboard = () => {
     fetchStatus = "idle",
   } = useSelector((state) => state.wishlist);
 
-  const [processingId, setProcessingId] = useState(null);
+  // Store current processing venue ID and whether we're adding or removing
+  const [processing, setProcessing] = useState({ venueId: null, action: null });
 
+  // Fetch wishlist once after user login
   useEffect(() => {
     if (user?._id && fetchStatus === "idle") {
       dispatch(fetchWishlist());
     }
   }, [user?._id, dispatch, fetchStatus]);
+
+  // Reset processing and statuses after add or remove completes
+  useEffect(() => {
+    if (
+      (addStatus === "succeeded" || addStatus === "failed") &&
+      processing.action === "add"
+    ) {
+      dispatch(wishlistActions.resetAddStatus());
+      setProcessing({ venueId: null, action: null });
+    }
+    if (
+      (removeStatus === "succeeded" || removeStatus === "failed") &&
+      processing.action === "remove"
+    ) {
+      dispatch(wishlistActions.resetRemoveStatus());
+      setProcessing({ venueId: null, action: null });
+    }
+  }, [addStatus, removeStatus, dispatch, processing.action]);
 
   const handleWishlistToggle = (venueId) => {
     if (!user?._id) {
@@ -39,12 +60,11 @@ const Dashboard = () => {
       return;
     }
 
-    setProcessingId(venueId);
-
-    // Check if venue is already in wishlist
     const isWishlisted = wishlist.some(
-      (item) => item.sportVenueId?._id?.toString() === venueId.toString()
+      (item) => item.sportVenueId._id === venueId
     );
+
+    setProcessing({ venueId, action: isWishlisted ? "remove" : "add" });
 
     if (isWishlisted) {
       dispatch(removeFromWishlist(venueId));
@@ -52,17 +72,6 @@ const Dashboard = () => {
       dispatch(addToWishlist(venueId));
     }
   };
-
-  useEffect(() => {
-    if (addStatus === "succeeded" || addStatus === "failed") {
-      dispatch(wishlistActions.resetAddStatus());
-      setProcessingId(null);
-    }
-    if (removeStatus === "succeeded" || removeStatus === "failed") {
-      dispatch(wishlistActions.resetRemoveStatus());
-      setProcessingId(null);
-    }
-  }, [addStatus, removeStatus, dispatch]);
 
   const handleBookNow = () => {
     navigate("/games");
@@ -120,15 +129,17 @@ const Dashboard = () => {
                 </div>
 
                 <button
-                  onClick={() => handleWishlistToggle(sportVenueId?._id)}
-                  disabled={processingId === sportVenueId?._id}
+                  onClick={() => handleWishlistToggle(sportVenueId._id)}
+                  disabled={
+                    processing.venueId === sportVenueId._id && processing.action
+                  }
                   className={`px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg ${
-                    processingId === sportVenueId?._id
+                    processing.venueId === sportVenueId._id && processing.action
                       ? "opacity-70 cursor-not-allowed"
                       : ""
                   }`}
                 >
-                  {processingId === sportVenueId?._id
+                  {processing.venueId === sportVenueId._id && processing.action
                     ? "Processing..."
                     : "Remove from Wishlist"}
                 </button>

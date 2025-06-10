@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSingleSport, sportsVenueActions } from "../store/slice/sportsvenue";
-import { fetchWishlist, addToWishlist, removeFromWishlist } from "../store/slice/wishlist";
+import { fetchWishlist, addToWishlist, removeFromWishlist, wishlistActions } from "../store/slice/wishlist";
 import Spinner from "../components/Spinner";
 import Reviews from "./Reviews";
 import { toast } from "react-toastify";
@@ -11,9 +11,12 @@ const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const { wishlist = [], loading: wishlistLoading } = useSelector(state => state.wishlist);
+  const { wishlist = [], loading: wishlistLoading, addStatus, removeStatus } = useSelector(state => state.wishlist);
   const { singleSport, loading: sportLoading, singleStatus } = useSelector(state => state.sportsVenue);
   const user = useSelector(state => state.user.profile);
+
+  // Local state to disable wishlist button only during processing of this item
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
@@ -21,13 +24,12 @@ const SingleSportDetail = () => {
     if (user?.id) {
       dispatch(fetchWishlist());
     }
-  }, [id, dispatch, user]);
+    return () => {
+      dispatch(sportsVenueActions.clearSingleSport());
+    };
+  }, [id, dispatch, user?.id]);
 
-  // Adjust this if your wishlist items have a different venue id property
-  const isWishlisted = Array.isArray(wishlist) && wishlist.some(item => {
-    // Example if populated: return item.sportVenueId?._id === id;
-    return item.venue_id === id;
-  });
+  const isWishlisted = Array.isArray(wishlist) && wishlist.some(item => item.venue_id?.toString() === id.toString());
 
   const handleWishlistToggle = () => {
     if (!user) {
@@ -35,14 +37,39 @@ const SingleSportDetail = () => {
       return;
     }
 
+    setProcessing(true);
+
     if (isWishlisted) {
       dispatch(removeFromWishlist(id));
-      toast.info("Removed from wishlist");
     } else {
       dispatch(addToWishlist(id));
-      toast.success("Added to wishlist");
     }
   };
+
+  // Listen for add/remove success/failure and react accordingly
+  useEffect(() => {
+    if (addStatus === "succeeded") {
+      toast.success("Added to wishlist");
+      dispatch(wishlistActions.resetAddStatus());
+      setProcessing(false);
+    } else if (addStatus === "failed") {
+      toast.error("Failed to add to wishlist");
+      dispatch(wishlistActions.resetAddStatus());
+      setProcessing(false);
+    }
+  }, [addStatus, dispatch]);
+
+  useEffect(() => {
+    if (removeStatus === "succeeded") {
+      toast.info("Removed from wishlist");
+      dispatch(wishlistActions.resetRemoveStatus());
+      setProcessing(false);
+    } else if (removeStatus === "failed") {
+      toast.error("Failed to remove from wishlist");
+      dispatch(wishlistActions.resetRemoveStatus());
+      setProcessing(false);
+    }
+  }, [removeStatus, dispatch]);
 
   if (sportLoading || singleStatus === "loading") return <Spinner />;
   if (!singleSport || singleStatus === "failed")
@@ -72,12 +99,12 @@ const SingleSportDetail = () => {
             {user ? (
               <button
                 onClick={handleWishlistToggle}
-                disabled={wishlistLoading}
+                disabled={processing}
                 className={`${
                   isWishlisted ? "bg-red-600 hover:bg-red-700" : "bg-gray-600 hover:bg-gray-700"
                 } text-white py-2 px-6 rounded-lg transition-all duration-300`}
               >
-                {wishlistLoading
+                {processing
                   ? "Processing..."
                   : isWishlisted
                   ? "❌ Remove from Wishlist"
