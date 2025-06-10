@@ -16,42 +16,53 @@ const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const { wishlist, loading: wishlistLoading, addStatus, removeStatus } =
-    useSelector((state) => state.wishlist);
-  const { singleSport, loading: sportLoading } = useSelector(
+  const {
+    wishlist = [],
+    fetchStatus,
+    loading: wishlistLoading,
+    addStatus,
+    removeStatus,
+  } = useSelector((state) => state.wishlist);
+  const { singleSport, loading: sportLoading, singleStatus } = useSelector(
     (state) => state.sportsVenue
   );
   const user = useSelector((state) => state.user.profile);
 
   const [processing, setProcessing] = useState(false);
+  const [wishlistReady, setWishlistReady] = useState(false);
 
-  // Fetch single sport and wishlist on mount
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
-    if (user?.id) dispatch(fetchWishlist());
+
+    if (user?.id) {
+      dispatch(fetchWishlist()).then(() => setWishlistReady(true));
+    } else {
+      setWishlistReady(true); // allow UI even if user not logged in
+    }
 
     return () => {
       dispatch(sportsVenueActions.clearSingleSport());
-      dispatch(wishlistActions.clearWishlist());
     };
   }, [id, dispatch, user?.id]);
 
-  // Memoize wishlist check, only if wishlist is loaded
   const isWishlisted = useMemo(() => {
-    if (!wishlist || wishlistLoading) return false;
-    return wishlist.some(
-      (item) => item.sportVenueId?._id?.toString() === id?.toString()
+    return (
+      wishlistReady &&
+      Array.isArray(wishlist) &&
+      wishlist.some(
+        (item) => item.sportVenueId?._id?.toString() === id?.toString()
+      )
     );
-  }, [wishlist, id, wishlistLoading]);
+  }, [wishlist, id, wishlistReady]);
 
-  // Handle wishlist toggle (add/remove)
   const handleWishlistToggle = () => {
     if (!user) {
       toast.warn("Please log in to modify wishlist");
       return;
     }
-    if (wishlistLoading || processing) return; // block while loading or processing
+
+    if (!wishlistReady) return;
 
     setProcessing(true);
 
@@ -62,7 +73,6 @@ const SingleSportDetail = () => {
     }
   };
 
-  // Watch add/remove status to stop processing and show toast
   useEffect(() => {
     if (addStatus === "succeeded") {
       toast.success("Added to wishlist");
@@ -87,15 +97,10 @@ const SingleSportDetail = () => {
     }
   }, [removeStatus, dispatch]);
 
-  // Show spinner while sport OR wishlist loading
-  if (sportLoading || wishlistLoading) return <Spinner />;
-
-  if (!singleSport)
-    return (
-      <p className="text-red-500 text-center font-semibold">
-        Sport venue not found.
-      </p>
-    );
+  if (sportLoading || singleStatus === "loading" || !wishlistReady)
+    return <Spinner />;
+  if (!singleSport || singleStatus === "failed")
+    return <p className="text-red-500 text-center">Sport not found.</p>;
 
   return (
     <div className="bg-gray-900 min-h-screen text-white py-10">
@@ -123,7 +128,7 @@ const SingleSportDetail = () => {
             {user ? (
               <button
                 onClick={handleWishlistToggle}
-                disabled={processing || wishlistLoading}
+                disabled={processing || !wishlistReady}
                 className={`${
                   isWishlisted
                     ? "bg-red-600 hover:bg-red-700"
