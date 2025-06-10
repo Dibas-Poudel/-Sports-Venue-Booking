@@ -7,20 +7,17 @@ const API_BASE = 'https://sportvenuebackend.onrender.com/api/v1/reviews';
 export const fetchReviews = (venueId) => async (dispatch) => {
   dispatch(reviewActions.fetchStart());
   try {
-    const response = await axios.get(`${API_BASE}/venue/${venueId}`, {
-      withCredentials: true,
-    });
+    const response = await axios.get(`${API_BASE}/venue/${venueId}`, { withCredentials: true });
 
     console.log("Fetched reviews:", response.data); 
 
-    dispatch(reviewActions.fetchSuccess(Array.isArray(response.data) ? response.data : [])); 
+    dispatch(reviewActions.fetchSuccess(Array.isArray(response.data.message) ? response.data.message : [])); 
   } catch (error) {
     console.error("Fetch Reviews Error:", error.response?.data || error.message);
     dispatch(reviewActions.fetchFailure(error.response?.data?.message || error.message));
     toast.error("Failed to fetch reviews");
   }
 };
-
 export const addReview = ({ venueId, rating, comment }) => async (dispatch) => {
   dispatch(reviewActions.addStart());
   try {
