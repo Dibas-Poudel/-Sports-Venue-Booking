@@ -12,19 +12,22 @@ import Spinner from "../components/Spinner";
 import Reviews from "./Reviews";
 import { toast } from "react-toastify";
 
+
 const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
   const {
     wishlist = [],
-    fetchStatus: wishlistFetchStatus, // Renamed for clarity: 'idle', 'loading', 'succeeded', 'failed'
+    fetchStatus: wishlistFetchStatus,
     addStatus,
     removeStatus,
   } = useSelector((state) => state.wishlist);
+
   const { singleSport, singleStatus } = useSelector(
     (state) => state.sportsVenue
   );
+
   const user = useSelector((state) => state.user.profile);
 
   const [processing, setProcessing] = useState(false);
@@ -32,38 +35,23 @@ const SingleSportDetail = () => {
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
-
-    // Only fetch wishlist if a user is logged in
     if (user?.id) {
       dispatch(fetchWishlist());
     }
-
     return () => {
       dispatch(sportsVenueActions.clearSingleSport());
     };
-  }, [id, dispatch, user?.id]); // Re-run if ID or user changes
+  }, [id, dispatch, user?.id]);
 
-  // Determine if the wishlist data is ready to be used for comparison
   const wishlistDataLoaded = useMemo(() => {
-    // If no user, wishlist is "ready" as there's nothing to fetch
-    if (!user) {
-      return true;
-    }
-    // If user exists, wishlist is ready if the fetch has completed (succeeded or failed)
+    if (!user) return true;
     return wishlistFetchStatus === "succeeded" || wishlistFetchStatus === "failed";
   }, [user, wishlistFetchStatus]);
 
-
-  // Determine if the current sport is in the wishlist
-  const isWishlisted = useMemo(() => {
-    // We can only reliably determine this if the wishlist data has loaded
-    if (!wishlistDataLoaded || !Array.isArray(wishlist)) {
-      return false;
-    }
-    return wishlist.some(
-      (item) => item.sportVenueId?._id?.toString() === id?.toString()
-    );
-  }, [wishlist, id, wishlistDataLoaded]); // Recalculate when wishlist changes, id changes, or data load status changes
+  const isWishlisted =
+    wishlistDataLoaded &&
+    Array.isArray(wishlist) &&
+    wishlist.some((item) => item.sportVenueId?._id?.toString() === id?.toString());
 
   const handleWishlistToggle = () => {
     if (!user) {
@@ -109,7 +97,6 @@ const SingleSportDetail = () => {
     }
   }, [removeStatus, dispatch]);
 
-  // Combined Loading State: Show spinner if either sport or user's wishlist (if logged in) is loading
   if (
     singleStatus === "loading" ||
     (user?.id && wishlistFetchStatus === "loading")
@@ -117,12 +104,10 @@ const SingleSportDetail = () => {
     return <Spinner />;
   }
 
-  // Error/Not Found State for the Sport Detail itself
   if (!singleSport || singleStatus === "failed") {
     return <p className="text-red-500 text-center">Sport not found.</p>;
   }
 
-  // --- Render the content once all necessary data is loaded ---
   return (
     <div className="bg-gray-900 min-h-screen text-white py-10">
       <div className="max-w-4xl mx-auto px-6">
@@ -146,23 +131,29 @@ const SingleSportDetail = () => {
               Book now
             </Link>
 
+            {/* Wishlist Button: only render when data is ready */}
             {user ? (
-              <button
-                onClick={handleWishlistToggle}
-                // Disable if processing or if wishlist data hasn't fully loaded yet
-                disabled={processing || !wishlistDataLoaded}
-                className={`${
-                  isWishlisted
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-gray-600 hover:bg-gray-700"
-                } text-white py-2 px-6 rounded-lg transition-all duration-300`}
-              >
-                {processing
-                  ? "Processing..."
-                  : isWishlisted
-                  ? "❌ Remove from Wishlist"
-                  : "❤️ Add to Wishlist"}
-              </button>
+              wishlistDataLoaded ? (
+                <button
+                  onClick={handleWishlistToggle}
+                  disabled={processing}
+                  className={`${
+                    isWishlisted
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-gray-600 hover:bg-gray-700"
+                  } text-white py-2 px-6 rounded-lg transition-all duration-300`}
+                >
+                  {processing
+                    ? "Processing..."
+                    : isWishlisted
+                    ? "❌ Remove from Wishlist"
+                    : "❤️ Add to Wishlist"}
+                </button>
+              ) : (
+                <p className="text-gray-400 font-semibold mt-4">
+                  Loading wishlist...
+                </p>
+              )
             ) : (
               <p className="text-gray-400 font-semibold mt-4">
                 Please log in to add to wishlist
