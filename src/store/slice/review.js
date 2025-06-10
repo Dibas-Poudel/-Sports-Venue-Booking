@@ -10,10 +10,10 @@ export const fetchReviews = (venueId) => async (dispatch) => {
     const response = await axios.get(`${API_BASE}/venue/${venueId}`, {
       withCredentials: true,
     });
-    dispatch(reviewActions.fetchSuccess(response.data.data));
+    dispatch(reviewActions.fetchSuccess(response.data.data)); 
   } catch (error) {
     dispatch(reviewActions.fetchFailure(error.response?.data?.message || error.message));
-    toast.error('Failed to fetch reviews');
+    toast.error("Failed to fetch reviews");
   }
 };
 
