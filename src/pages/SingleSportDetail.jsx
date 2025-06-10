@@ -18,26 +18,22 @@ const SingleSportDetail = () => {
 
   const {
     wishlist = [],
-    fetchStatus: wishlistFetchStatus, 
-    loading: wishlistLoading, 
+    fetchStatus: wishlistFetchStatus, // Renamed for clarity: 'idle', 'loading', 'succeeded', 'failed'
     addStatus,
     removeStatus,
   } = useSelector((state) => state.wishlist);
-  const { singleSport, loading: sportLoading, singleStatus } = useSelector(
+  const { singleSport, singleStatus } = useSelector(
     (state) => state.sportsVenue
   );
   const user = useSelector((state) => state.user.profile);
 
   const [processing, setProcessing] = useState(false);
 
-  const wishlistReady = useMemo(() => {
-     return !user || wishlistFetchStatus === "succeeded" || wishlistFetchStatus === "failed";
-  }, [user, wishlistFetchStatus]);
-
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
 
+    // Only fetch wishlist if a user is logged in
     if (user?.id) {
       dispatch(fetchWishlist());
     }
@@ -45,17 +41,29 @@ const SingleSportDetail = () => {
     return () => {
       dispatch(sportsVenueActions.clearSingleSport());
     };
-  }, [id, dispatch, user?.id]); 
+  }, [id, dispatch, user?.id]); // Re-run if ID or user changes
 
+  // Determine if the wishlist data is ready to be used for comparison
+  const wishlistDataLoaded = useMemo(() => {
+    // If no user, wishlist is "ready" as there's nothing to fetch
+    if (!user) {
+      return true;
+    }
+    // If user exists, wishlist is ready if the fetch has completed (succeeded or failed)
+    return wishlistFetchStatus === "succeeded" || wishlistFetchStatus === "failed";
+  }, [user, wishlistFetchStatus]);
+
+
+  // Determine if the current sport is in the wishlist
   const isWishlisted = useMemo(() => {
-    // Only compute if wishlist data is ready
-    if (!wishlistReady || !Array.isArray(wishlist)) {
+    // We can only reliably determine this if the wishlist data has loaded
+    if (!wishlistDataLoaded || !Array.isArray(wishlist)) {
       return false;
     }
     return wishlist.some(
       (item) => item.sportVenueId?._id?.toString() === id?.toString()
     );
-  }, [wishlist, id, wishlistReady]); 
+  }, [wishlist, id, wishlistDataLoaded]); // Recalculate when wishlist changes, id changes, or data load status changes
 
   const handleWishlistToggle = () => {
     if (!user) {
@@ -63,9 +71,8 @@ const SingleSportDetail = () => {
       return;
     }
 
-    // Ensure wishlist is ready before processing toggle
-    if (!wishlistReady) {
-      toast.error("Wishlist data not ready. Please try again.");
+    if (!wishlistDataLoaded) {
+      toast.error("Wishlist data is still loading. Please wait.");
       return;
     }
 
@@ -102,17 +109,20 @@ const SingleSportDetail = () => {
     }
   }, [removeStatus, dispatch]);
 
-  // Loading state checks
+  // Combined Loading State: Show spinner if either sport or user's wishlist (if logged in) is loading
   if (
-    sportLoading ||
     singleStatus === "loading" ||
-    (user?.id && wishlistFetchStatus === "loading") 
-  )
+    (user?.id && wishlistFetchStatus === "loading")
+  ) {
     return <Spinner />;
+  }
 
-  if (!singleSport || singleStatus === "failed")
+  // Error/Not Found State for the Sport Detail itself
+  if (!singleSport || singleStatus === "failed") {
     return <p className="text-red-500 text-center">Sport not found.</p>;
+  }
 
+  // --- Render the content once all necessary data is loaded ---
   return (
     <div className="bg-gray-900 min-h-screen text-white py-10">
       <div className="max-w-4xl mx-auto px-6">
@@ -139,7 +149,8 @@ const SingleSportDetail = () => {
             {user ? (
               <button
                 onClick={handleWishlistToggle}
-                disabled={processing || !wishlistReady} 
+                // Disable if processing or if wishlist data hasn't fully loaded yet
+                disabled={processing || !wishlistDataLoaded}
                 className={`${
                   isWishlisted
                     ? "bg-red-600 hover:bg-red-700"
