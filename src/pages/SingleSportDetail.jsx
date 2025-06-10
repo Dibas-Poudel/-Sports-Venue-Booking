@@ -10,23 +10,17 @@ import { toast } from "react-toastify";
 const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { 
-    singleSport, 
-    loading,
-    singleStatus 
-  } = useSelector((state) => state.sportsVenue);
+  const { singleSport, loading, singleStatus } = useSelector((state) => state.sportsVenue);
   const { items: wishlist, loading: wishlistLoading } = useSelector((state) => state.wishlist);
   const user = useSelector((state) => state.user.profile);
 
   useEffect(() => {
-    dispatch(sportsVenueActions.clearSingleSport()); 
+    dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
-  
     if (user?.id) {
-      dispatch(fetchWishlist(user.id));
+      dispatch(fetchWishlist());
     }
   }, [id, dispatch, user]);
-  
 
   const isWishlisted = wishlist.some(item => item.venue_id === id);
 
@@ -37,9 +31,9 @@ const SingleSportDetail = () => {
     }
 
     if (isWishlisted) {
-      dispatch(removeFromWishlist({ userId: user.id, venueId: id }));
+      dispatch(removeFromWishlist(id));
     } else {
-      dispatch(addToWishlist({ userId: user.id, venueId: id }));
+      dispatch(addToWishlist(id));
     }
   };
 
@@ -77,7 +71,7 @@ const SingleSportDetail = () => {
                     : "bg-gray-600 hover:bg-gray-700"
                 } text-white py-2 px-6 rounded-lg transition-all duration-300`}
               >
-                {wishlistLoading ? "Processing..." : 
+                {wishlistLoading ? "Processing..." :
                   isWishlisted ? "❌ Remove from Wishlist" : "❤️ Add to Wishlist"}
               </button>
             )}

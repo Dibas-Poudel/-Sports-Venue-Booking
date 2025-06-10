@@ -1,119 +1,123 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { toast } from "react-toastify";
-import axios from "axios";
+import { createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
 
-const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1/wishlist";
-
-export function fetchWishlist() {
-  return async function fetchWishlistThunk(dispatch) {
-    dispatch(wishlistActions.fetchStart());
-    try {
-      const res = await axios.get(BASE_URL, {
-        withCredentials:true,
-      });
-      dispatch(wishlistActions.fetchSuccess(res.data.wishlist));
-    } catch (error) {
-      dispatch(wishlistActions.fetchFailure(error.response?.data?.message || error.message));
-      toast.error("Failed to fetch wishlist");
-    }
-  };
-}
-
-export function toggleWishlist({ token, venueId }) {
-  return async function toggleWishlistThunk(dispatch) {
-    dispatch(wishlistActions.addStart());
-
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/${venueId}`,
-        {},
-        {
-          withCredentials:true,
-        }
-      );
-
-      const status = res.data.status;
-
-      if (status === "added") {
-        dispatch(wishlistActions.addItemOptimistic(venueId));
-        toast.success("Added to wishlist");
-      } else if (status === "removed") {
-        dispatch(wishlistActions.removeItemOptimistic(venueId));
-        toast.success("Removed from wishlist");
-      }
-
-      dispatch(fetchWishlist(token));
-    } catch (error) {
-      dispatch(wishlistActions.addFailure(error.response?.data?.message || error.message));
-      toast.error("Failed to toggle wishlist");
-    }
-  };
-}
+const API_BASE = 'https://sportvenuebackend.onrender.com/api/v1';
 
 const initialState = {
   items: [],
   loading: false,
   error: null,
-  fetchStatus: "idle",
-  addStatus: "idle",
-  removeStatus: "idle",
+  fetchStatus: 'idle',
+  addStatus: 'idle',
+  removeStatus: 'idle',
 };
 
 const wishlistSlice = createSlice({
-  name: "wishlist",
+  name: 'wishlist',
   initialState,
   reducers: {
-    fetchStart: (state) => {
+    fetchWishlistStart(state) {
       state.loading = true;
+      state.fetchStatus = 'loading';
       state.error = null;
-      state.fetchStatus = "loading";
     },
-    fetchSuccess: (state, action) => {
+    fetchWishlistSuccess(state, action) {
       state.loading = false;
+      state.fetchStatus = 'succeeded';
       state.items = action.payload;
-      state.fetchStatus = "succeeded";
     },
-    fetchFailure: (state, action) => {
+    fetchWishlistFailure(state, action) {
       state.loading = false;
+      state.fetchStatus = 'failed';
       state.error = action.payload;
-      state.fetchStatus = "failed";
     },
 
-    addStart: (state) => {
-      state.loading = true;
+    addToWishlistStart(state) {
+      state.addStatus = 'loading';
       state.error = null;
-      state.addStatus = "loading";
     },
-    addFailure: (state, action) => {
-      state.loading = false;
+    addToWishlistSuccess(state, action) {
+      state.addStatus = 'succeeded';
+      state.items.push(action.payload);
+    },
+    addToWishlistFailure(state, action) {
+      state.addStatus = 'failed';
       state.error = action.payload;
-      state.addStatus = "failed";
     },
 
-    removeFailure: (state, action) => {
-      state.loading = false;
+    removeFromWishlistStart(state) {
+      state.removeStatus = 'loading';
+      state.error = null;
+    },
+    removeFromWishlistSuccess(state, action) {
+      state.removeStatus = 'succeeded';
+      state.items = state.items.filter(item => item.venue_id !== action.payload);
+    },
+    removeFromWishlistFailure(state, action) {
+      state.removeStatus = 'failed';
       state.error = action.payload;
-      state.removeStatus = "failed";
     },
 
-    addItemOptimistic: (state, action) => {
-      state.items.push({ sportVenueId: action.payload });
+    resetAddStatus(state) {
+      state.addStatus = 'idle';
     },
-    removeItemOptimistic: (state, action) => {
-      state.items = state.items.filter(item => item.sportVenueId !== action.payload);
-    },
-
-    resetFetchStatus: (state) => {
-      state.fetchStatus = "idle";
-    },
-    resetAddStatus: (state) => {
-      state.addStatus = "idle";
-    },
-    resetRemoveStatus: (state) => {
-      state.removeStatus = "idle";
+    resetRemoveStatus(state) {
+      state.removeStatus = 'idle';
     },
   },
 });
 
-export const wishlistActions = wishlistSlice.actions;
+export const {
+  fetchWishlistStart,
+  fetchWishlistSuccess,
+  fetchWishlistFailure,
+  addToWishlistStart,
+  addToWishlistSuccess,
+  addToWishlistFailure,
+  removeFromWishlistStart,
+  removeFromWishlistSuccess,
+  removeFromWishlistFailure,
+  resetAddStatus,
+  resetRemoveStatus,
+} = wishlistSlice.actions;
+
 export default wishlistSlice.reducer;
+
+// Fetch Wishlist
+export const fetchWishlist = () => async (dispatch) => {
+  dispatch(fetchWishlistStart());
+  try {
+    const res = await axios.get(`${API_BASE}/wishlist`, {
+      withCredentials: true,
+    });
+    dispatch(fetchWishlistSuccess(res.data.data));
+  } catch (error) {
+    dispatch(fetchWishlistFailure(error?.response?.data?.message || error.message));
+  }
+};
+
+// Add to Wishlist
+export const addToWishlist = (venueId) => async (dispatch) => {
+  dispatch(addToWishlistStart());
+  try {
+    const res = await axios.post(`${API_BASE}/wishlist/${venueId}`, null, {
+      withCredentials: true,
+    });
+    dispatch(addToWishlistSuccess(res.data.data));
+  } catch (error) {
+    dispatch(addToWishlistFailure(error?.response?.data?.message || error.message));
+  }
+};
+
+// Remove from Wishlist
+export const removeFromWishlist = (venueId) => async (dispatch) => {
+  dispatch(removeFromWishlistStart());
+  try {
+    await axios.delete(`${API_BASE}/wishlist/${venueId}`, {
+      withCredentials: true,
+    });
+    dispatch(removeFromWishlistSuccess(venueId));
+  } catch (error) {
+    dispatch(removeFromWishlistFailure(error?.response?.data?.message || error.message));
+  }
+};
