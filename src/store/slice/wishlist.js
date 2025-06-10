@@ -16,6 +16,7 @@ const wishlistSlice = createSlice({
   name: "wishlist",
   initialState,
   reducers: {
+    // Fetch wishlist
     fetchWishlistStart(state) {
       state.fetchStatus = "loading";
       state.loading = true;
@@ -32,6 +33,7 @@ const wishlistSlice = createSlice({
       state.error = action.payload;
     },
 
+    // Add item to wishlist
     addWishlistStart(state) {
       state.addStatus = "loading";
       state.error = null;
@@ -45,6 +47,7 @@ const wishlistSlice = createSlice({
       state.error = action.payload;
     },
 
+    // Remove item from wishlist
     removeWishlistStart(state) {
       state.removeStatus = "loading";
       state.error = null;
@@ -60,6 +63,7 @@ const wishlistSlice = createSlice({
       state.error = action.payload;
     },
 
+    // Reset add/remove statuses
     resetAddStatus(state) {
       state.addStatus = "idle";
     },
@@ -85,19 +89,15 @@ export const {
 
 export default wishlistSlice.reducer;
 
-// Manual thunk actions
+// Thunk actions
 
 export const fetchWishlist = () => async (dispatch) => {
   dispatch(fetchWishlistStart());
   try {
-    const response = await axios.get(`${API_BASE}/wishlist`, {
-      withCredentials: true,
-    });
+    const response = await axios.get(`${API_BASE}/wishlist`, { withCredentials: true });
     dispatch(fetchWishlistSuccess(response.data.data));
   } catch (error) {
-    dispatch(
-      fetchWishlistFailure(error.response?.data?.message || error.message)
-    );
+    dispatch(fetchWishlistFailure(error.response?.data?.message || error.message));
   }
 };
 
@@ -116,13 +116,9 @@ export const addToWishlist = (venueId) => async (dispatch) => {
 export const removeFromWishlist = (venueId) => async (dispatch) => {
   dispatch(removeWishlistStart());
   try {
-    await axios.delete(`${API_BASE}/wishlist/${venueId}`, {
-      withCredentials: true,
-    });
+    await axios.delete(`${API_BASE}/wishlist/${venueId}`, { withCredentials: true });
     dispatch(removeWishlistSuccess(venueId));
   } catch (error) {
-    dispatch(
-      removeWishlistFailure(error.response?.data?.message || error.message)
-    );
+    dispatch(removeWishlistFailure(error.response?.data?.message || error.message));
   }
 };
