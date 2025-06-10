@@ -11,9 +11,9 @@ export const fetchReviews = (venueId) => async (dispatch) => {
       withCredentials: true,
     });
 
-    console.log("Fetched reviews:", response.data);
+    console.log("Fetched reviews:", response.data); 
 
-    dispatch(reviewActions.fetchSuccess(response.data)); 
+    dispatch(reviewActions.fetchSuccess(Array.isArray(response.data) ? response.data : [])); 
   } catch (error) {
     console.error("Fetch Reviews Error:", error.response?.data || error.message);
     dispatch(reviewActions.fetchFailure(error.response?.data?.message || error.message));
@@ -64,7 +64,7 @@ export const deleteReview = ({ reviewId, venueId }) => async (dispatch) => {
 };
 
 const initialState = {
-  items: [], 
+  items: [],
   loading: false,
   error: null,
   currentReview: null,
@@ -78,14 +78,10 @@ const reviewSlice = createSlice({
   name: 'reviews',
   initialState,
   reducers: {
-    setCurrentReview: (state, action) => {
-      state.currentReview = action.payload;
-    },
-    clearCurrentReview: (state) => {
-      state.currentReview = null;
-    },
+    setCurrentReview: (state, action) => { state.currentReview = action.payload; },
+    clearCurrentReview: (state) => { state.currentReview = null; },
     fetchStart: (state) => { state.loading = true; state.fetchStatus = 'loading'; },
-    fetchSuccess: (state, action) => { state.loading = false; state.items = action.payload || []; state.fetchStatus = 'succeeded'; },
+    fetchSuccess: (state, action) => { state.loading = false; state.items = action.payload; state.fetchStatus = 'succeeded'; },
     fetchFailure: (state, action) => { state.loading = false; state.error = action.payload; state.fetchStatus = 'failed'; },
     addStart: (state) => { state.loading = true; state.addStatus = 'loading'; },
     addSuccess: (state) => { state.loading = false; state.addStatus = 'succeeded'; },
