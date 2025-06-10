@@ -106,7 +106,7 @@ export const fetchWishlist = () => async (dispatch) => {
 export const addToWishlist = (venueId) => async (dispatch) => {
   dispatch(addWishlistStart());
   try {
-    const response = await axios.post(`${API_BASE}/wishlist/${venueId}`, null, {
+    const response = await axios.post(`${API_BASE}/wishlist/${venueId}`, {}, {
       withCredentials: true,
     });
     dispatch(addWishlistSuccess(response.data.data));
