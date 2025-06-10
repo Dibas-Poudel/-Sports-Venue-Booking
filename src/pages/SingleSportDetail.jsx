@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams, Navigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSingleSport, sportsVenueActions } from "../store/slice/sportsvenue";
 import {
@@ -16,62 +16,42 @@ const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  // Safer Redux selectors
-  const {
-    wishlist = [],
-    fetchStatus,
-    loading: wishlistLoading,
-    addStatus,
-    removeStatus,
-  } = useSelector((state) => state.wishlist || {});
-  
-  const { 
-    singleSport = null, 
-    loading: sportLoading, 
-    error: sportError 
-  } = useSelector((state) => state.sportsVenue || {});
-
-  // Correct user selector based on your auth structure
-const user = useSelector((state) => state.user?.profile);
-
+  const { wishlist, loading: wishlistLoading, addStatus, removeStatus } =
+    useSelector((state) => state.wishlist);
+  const { singleSport, loading: sportLoading } = useSelector(
+    (state) => state.sportsVenue
+  );
+  const user = useSelector((state) => state.user.profile);
 
   const [processing, setProcessing] = useState(false);
-  const [wishlistReady, setWishlistReady] = useState(false);
 
-  // Data fetching
+  // Fetch single sport and wishlist on mount
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
-
-    if (user?.id) {
-      dispatch(fetchWishlist())
-        .then(() => setWishlistReady(true))
-        .catch(() => setWishlistReady(true));
-    } else {
-      setWishlistReady(true);
-    }
+    if (user?.id) dispatch(fetchWishlist());
 
     return () => {
       dispatch(sportsVenueActions.clearSingleSport());
+      dispatch(wishlistActions.clearWishlist());
     };
   }, [id, dispatch, user?.id]);
 
-  // Wishlist status check
+  // Memoize wishlist check, only if wishlist is loaded
   const isWishlisted = useMemo(() => {
-    if (!wishlistReady || !Array.isArray(wishlist)) return false;
+    if (!wishlist || wishlistLoading) return false;
     return wishlist.some(
       (item) => item.sportVenueId?._id?.toString() === id?.toString()
     );
-  }, [wishlist, id, wishlistReady]);
+  }, [wishlist, id, wishlistLoading]);
 
-  // Wishlist toggle handler
+  // Handle wishlist toggle (add/remove)
   const handleWishlistToggle = () => {
     if (!user) {
       toast.warn("Please log in to modify wishlist");
       return;
     }
-
-    if (processing || !wishlistReady) return;
+    if (wishlistLoading || processing) return; // block while loading or processing
 
     setProcessing(true);
 
@@ -82,7 +62,7 @@ const user = useSelector((state) => state.user?.profile);
     }
   };
 
-  // Effect for wishlist add status
+  // Watch add/remove status to stop processing and show toast
   useEffect(() => {
     if (addStatus === "succeeded") {
       toast.success("Added to wishlist");
@@ -95,7 +75,6 @@ const user = useSelector((state) => state.user?.profile);
     }
   }, [addStatus, dispatch]);
 
-  // Effect for wishlist remove status
   useEffect(() => {
     if (removeStatus === "succeeded") {
       toast.info("Removed from wishlist");
@@ -108,48 +87,34 @@ const user = useSelector((state) => state.user?.profile);
     }
   }, [removeStatus, dispatch]);
 
-  // Loading and error states
-  if (sportLoading) {
+  // Show spinner while sport OR wishlist loading
+  if (sportLoading || wishlistLoading) return <Spinner />;
+
+  if (!singleSport)
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Spinner size="lg" />
-      </div>
+      <p className="text-red-500 text-center font-semibold">
+        Sport venue not found.
+      </p>
     );
-  }
 
-  if (sportError || !singleSport) {
-    return <Navigate to="/sports" state={{ error: "Failed to load sport details" }} replace />;
-  }
-
-  // Main render
   return (
     <div className="bg-gray-900 min-h-screen text-white py-10">
       <div className="max-w-4xl mx-auto px-6">
         <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
           <img
-            src={singleSport?.image_url || "/images/default-sport.jpg"}
-            alt={singleSport?.name || "Sport venue"}
+            src={singleSport.image_url || "/images/snooker.jpg"}
+            alt={singleSport.name}
             className="w-full h-96 object-cover rounded-xl mb-6"
-            onError={(e) => {
-              e.target.src = "/images/default-sport.jpg";
-            }}
           />
-          
-          <h2 className="text-3xl font-bold mb-4">
-            {singleSport?.name || "Sport Venue"}
-          </h2>
-          
-          <p className="text-gray-300 mb-4">
-            {singleSport?.description || "No description available"}
-          </p>
-          
+          <h2 className="text-3xl font-bold mb-4">{singleSport.name}</h2>
+          <p className="text-gray-300 mb-4">{singleSport.description}</p>
           <p className="text-lg font-semibold mb-6">
-            Price: Rs {singleSport?.price || "N/A"}
+            Price: Rs {singleSport.price}
           </p>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex gap-4">
             <Link
-              to={`/book/${singleSport?._id}`}
+              to={`/book/${singleSport._id}`}
               className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition-all duration-300 inline-block"
             >
               Book now
@@ -158,7 +123,7 @@ const user = useSelector((state) => state.user?.profile);
             {user ? (
               <button
                 onClick={handleWishlistToggle}
-                disabled={processing || !wishlistReady}
+                disabled={processing || wishlistLoading}
                 className={`${
                   isWishlisted
                     ? "bg-red-600 hover:bg-red-700"
