@@ -29,7 +29,9 @@ const SingleSportDetail = () => {
     };
   }, [id, dispatch, user?.id]);
 
-  const isWishlisted = Array.isArray(wishlist) && wishlist.some(item => item.venue_id?.toString() === id.toString());
+const isWishlisted = Array.isArray(wishlist) && wishlist.some(
+  (item) => item.sportVenueId?._id?.toString() === id.toString()
+);
 
   const handleWishlistToggle = () => {
     if (!user) {
