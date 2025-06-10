@@ -10,29 +10,19 @@ import { toast } from "react-toastify";
 const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-
-  const { singleSport, loading, singleStatus } = useSelector(
-    (state) => state.sportsVenue
-  );
-
-  // Provide a default empty array fallback to avoid errors
-  const { items: wishlist = [], loading: wishlistLoading } = useSelector(
-    (state) => state.wishlist
-  );
-
+  const { singleSport, loading, singleStatus } = useSelector((state) => state.sportsVenue);
+  const { items: wishlist, loading: wishlistLoading } = useSelector((state) => state.wishlist);
   const user = useSelector((state) => state.user.profile);
 
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
-
-    if (user?._id) {
+    if (user?.id) {
       dispatch(fetchWishlist());
     }
-  }, [id, dispatch, user?._id]);
+  }, [id, dispatch, user]);
 
-  // Safe check for wishlist
-  const isWishlisted = wishlist.some((item) => item.venue_id === id);
+  const isWishlisted = wishlist.some(item => item.venue_id === id);
 
   const handleWishlistToggle = () => {
     if (!user) {
@@ -47,14 +37,8 @@ const SingleSportDetail = () => {
     }
   };
 
-  if (loading || singleStatus === "loading") return <Spinner />;
-
-  if (!singleSport || singleStatus === "failed")
-    return (
-      <p className="text-red-500 text-center">
-        Sport not found.
-      </p>
-    );
+  if (loading || singleStatus === 'loading') return <Spinner />;
+  if (!singleSport || singleStatus === 'failed') return <p className="text-red-500 text-center">Sport not found.</p>;
 
   return (
     <div className="bg-gray-900 min-h-screen text-white py-10">
@@ -87,18 +71,12 @@ const SingleSportDetail = () => {
                     : "bg-gray-600 hover:bg-gray-700"
                 } text-white py-2 px-6 rounded-lg transition-all duration-300`}
               >
-                {wishlistLoading
-                  ? "Processing..."
-                  : isWishlisted
-                  ? "❌ Remove from Wishlist"
-                  : "❤️ Add to Wishlist"}
+                {wishlistLoading ? "Processing..." :
+                  isWishlisted ? "❌ Remove from Wishlist" : "❤️ Add to Wishlist"}
               </button>
             )}
-
             {!user && (
-              <p className="text-red-500 font-semibold mt-4">
-                Please log in to add to wishlist
-              </p>
+              <p className="text-red-500 font-semibold mt-4">Please log in to add to wishlist</p>
             )}
           </div>
         </div>
