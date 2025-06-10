@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import UserBookings from './UserBooking';
-import Spinner from '../../components/Spinner';
-import { toast } from 'react-toastify';
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import UserBookings from "./UserBooking";
+import Spinner from "../../components/Spinner";
+import { toast } from "react-toastify";
 import {
   fetchWishlist,
   addToWishlist,
   removeFromWishlist,
   wishlistActions,
-} from '../../store/slice/wishlist';
+} from "../../store/slice/wishlist";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
@@ -21,16 +21,16 @@ const Dashboard = () => {
   const {
     wishlist = [],
     loading = false,
-    addStatus = 'idle',
-    removeStatus = 'idle',
-    fetchStatus = 'idle',
+    addStatus = "idle",
+    removeStatus = "idle",
+    fetchStatus = "idle",
   } = useSelector((state) => state.wishlist);
 
   const [processingId, setProcessingId] = useState(null);
 
   // Fetch wishlist once when user is logged in and status is idle
   useEffect(() => {
-    if (user?._id && fetchStatus === 'idle') {
+    if (user?._id && fetchStatus === "idle") {
       dispatch(fetchWishlist());
     }
   }, [user?._id, dispatch, fetchStatus]);
@@ -38,7 +38,7 @@ const Dashboard = () => {
   // Handle wishlist toggle (add/remove)
   const handleWishlistToggle = (venueId) => {
     if (!user?._id) {
-      toast.error('Please log in to modify wishlist');
+      toast.error("Please log in to modify wishlist");
       return;
     }
 
@@ -57,21 +57,21 @@ const Dashboard = () => {
 
   // Reset statuses and clear processingId after add/remove completes
   useEffect(() => {
-    if (addStatus === 'succeeded' || addStatus === 'failed') {
+    if (addStatus === "succeeded" || addStatus === "failed") {
       dispatch(wishlistActions.resetAddStatus());
       setProcessingId(null);
     }
-    if (removeStatus === 'succeeded' || removeStatus === 'failed') {
+    if (removeStatus === "succeeded" || removeStatus === "failed") {
       dispatch(wishlistActions.resetRemoveStatus());
       setProcessingId(null);
     }
   }, [addStatus, removeStatus, dispatch]);
 
   const handleBookNow = () => {
-    navigate('/games');
+    navigate("/games");
   };
 
-  if (loading && fetchStatus === 'loading') return <Spinner />;
+  if (loading && fetchStatus === "loading") return <Spinner />;
 
   if (!user) {
     return (
@@ -113,21 +113,29 @@ const Dashboard = () => {
                 className="bg-gray-800 p-4 rounded-xl shadow-md flex justify-between items-center"
               >
                 <div>
-                  <h3 className="text-xl font-semibold">{sports_venues?.name}</h3>
+                  <h3 className="text-xl font-semibold">
+                    {sports_venues?.name}
+                  </h3>
                   <p className="text-sm text-gray-400">
                     {sports_venues?.description}
                   </p>
-                  <p className="text-lg font-semibold mt-2">Rs {sports_venues?.price}</p>
+                  <p className="text-lg font-semibold mt-2">
+                    Rs {sports_venues?.price}
+                  </p>
                 </div>
 
                 <button
                   onClick={() => handleWishlistToggle(venue_id)}
                   disabled={processingId === venue_id}
                   className={`px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg ${
-                    processingId === venue_id ? 'opacity-70 cursor-not-allowed' : ''
+                    processingId === venue_id
+                      ? "opacity-70 cursor-not-allowed"
+                      : ""
                   }`}
                 >
-                  {processingId === venue_id ? 'Processing...' : 'Remove from Wishlist'}
+                  {processingId === venue_id
+                    ? "Processing..."
+                    : "Remove from Wishlist"}
                 </button>
               </div>
             ))
