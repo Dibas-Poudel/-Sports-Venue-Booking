@@ -4,6 +4,13 @@ import { toast } from 'react-toastify';
 
 const API_BASE = 'https://sportvenuebackend.onrender.com/api/v1/reviews';
 
+// Helper to get auth token
+const getAuthHeader = (user) => ({
+  headers: { Authorization: `Bearer ${user?.token}` },
+  withCredentials: true,
+});
+
+// Fetch Reviews
 export const fetchReviews = (venueId) => async (dispatch) => {
   dispatch(reviewActions.fetchStart());
   try {
@@ -11,17 +18,24 @@ export const fetchReviews = (venueId) => async (dispatch) => {
 
     console.log("Fetched reviews:", response.data); 
 
-    dispatch(reviewActions.fetchSuccess(Array.isArray(response.data.message) ? response.data.message : [])); 
+    const formattedReviews = response.data.message.map((r) => ({
+      ...r,
+      userId: r.userId?._id || r.userId, 
+    }));
+
+    dispatch(reviewActions.fetchSuccess(formattedReviews));
   } catch (error) {
     console.error("Fetch Reviews Error:", error.response?.data || error.message);
     dispatch(reviewActions.fetchFailure(error.response?.data?.message || error.message));
     toast.error("Failed to fetch reviews");
   }
 };
-export const addReview = ({ venueId, rating, comment }) => async (dispatch) => {
+
+// Add Review
+export const addReview = ({ venueId, rating, comment, user }) => async (dispatch) => {
   dispatch(reviewActions.addStart());
   try {
-    await axios.post(`${API_BASE}/create/${venueId}`, { rating, comment }, { withCredentials: true });
+    await axios.post(`${API_BASE}/create/${venueId}`, { rating, comment }, getAuthHeader(user));
     dispatch(fetchReviews(venueId));
     dispatch(reviewActions.addSuccess());
     toast.success('Review added successfully');
@@ -32,12 +46,11 @@ export const addReview = ({ venueId, rating, comment }) => async (dispatch) => {
   }
 };
 
-export const updateReview = ({ reviewId, venueId, rating, comment }) => async (dispatch) => {
+// Update Review
+export const updateReview = ({ reviewId, venueId, rating, comment, user }) => async (dispatch) => {
   dispatch(reviewActions.updateStart());
   try {
-    await axios.patch(`${API_BASE}/edit/${reviewId}`, { rating, comment }, {
-      withCredentials: true, 
-    });
+    await axios.patch(`${API_BASE}/edit/${reviewId}`, { rating, comment }, getAuthHeader(user));
     dispatch(fetchReviews(venueId));
     dispatch(reviewActions.updateSuccess());
     toast.success("Review updated successfully");
@@ -48,10 +61,11 @@ export const updateReview = ({ reviewId, venueId, rating, comment }) => async (d
   }
 };
 
-export const deleteReview = ({ reviewId, venueId }) => async (dispatch) => {
+// Delete Review
+export const deleteReview = ({ reviewId, venueId, user }) => async (dispatch) => {
   dispatch(reviewActions.deleteStart());
   try {
-    await axios.delete(`${API_BASE}/delete/${reviewId}`, { withCredentials: true });
+    await axios.delete(`${API_BASE}/delete/${reviewId}`, getAuthHeader(user));
     dispatch(fetchReviews(venueId));
     dispatch(reviewActions.deleteSuccess());
     toast.success('Review deleted successfully');
