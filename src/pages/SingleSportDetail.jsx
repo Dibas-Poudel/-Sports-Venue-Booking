@@ -32,18 +32,22 @@ const SingleSportDetail = () => {
 
   const [processing, setProcessing] = useState(false);
 
+// Fetch single sport
 useEffect(() => {
   dispatch(sportsVenueActions.clearSingleSport());
   dispatch(fetchSingleSport(id));
 
-  if (user && user.id) {
-    dispatch(fetchWishlist());
-  }
-
   return () => {
     dispatch(sportsVenueActions.clearSingleSport());
   };
-}, [id, user, dispatch]);
+}, [id, dispatch]);
+
+// Fetch wishlist separately when user becomes available
+useEffect(() => {
+  if (user && user.id) {
+    dispatch(fetchWishlist());
+  }
+}, [user, dispatch]);
 
   const wishlistDataLoaded = useMemo(() => {
     if (!user) return true;
