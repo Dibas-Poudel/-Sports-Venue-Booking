@@ -27,7 +27,7 @@ const Login = () => {
    useEffect(() => {
     if (loginStatus === 'succeeded') {
       toast.success("Login successful!");
-      navigate("/games");
+      navigate("/dashboard");
       dispatch(resetLoginStatus());
     }
   }, [loginStatus, navigate,dispatch]);
