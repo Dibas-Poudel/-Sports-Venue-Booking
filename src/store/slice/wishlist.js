@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_BASE = "http://localhost:3000/api/v1";
+const API_BASE = "https://sportvenuebackend.onrender.com/api/v1";
 
 // Fetch wishlist items
 export const fetchWishlist = createAsyncThunk(
@@ -124,5 +124,7 @@ const wishlistSlice = createSlice({
 
 export const { clearWishlist, resetAddStatus, resetRemoveStatus } =
   wishlistSlice.actions;
+  export const wishlistActions = wishlistSlice.actions;
+
 
 export default wishlistSlice.reducer;
