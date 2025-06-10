@@ -26,15 +26,15 @@ const Dashboard = () => {
 
   const [processingId, setProcessingId] = useState(null);
 
-  // Fetch wishlist items for the logged-in user
+  // Fetch wishlist items once when user is available and fetchStatus is idle
   useEffect(() => {
     if (user?._id && fetchStatus === 'idle') {
-      dispatch(fetchWishlist(user._id));
+      dispatch(fetchWishlist());
     }
   }, [user?._id, dispatch, fetchStatus]);
 
   // Handle wishlist toggle
-  const handleWishlistToggle = async (venueId) => {
+  const handleWishlistToggle = (venueId) => {
     if (!user?._id) {
       toast.error('Please log in to modify wishlist');
       return;
@@ -45,13 +45,13 @@ const Dashboard = () => {
     const isWishlisted = wishlist.some(item => item.venue_id === venueId);
 
     if (isWishlisted) {
-      dispatch(removeFromWishlist({ userId: user._id, venueId }));
+      dispatch(removeFromWishlist(venueId));
     } else {
-      dispatch(addToWishlist({ userId: user._id, venueId }));
+      dispatch(addToWishlist(venueId));
     }
   };
 
-  // Reset status after wishlist actions
+  // Reset statuses and clear processingId after wishlist add/remove completes
   useEffect(() => {
     if (addStatus === 'succeeded' || addStatus === 'failed') {
       dispatch(wishlistActions.resetAddStatus());
@@ -103,40 +103,28 @@ const Dashboard = () => {
           {wishlist.length === 0 ? (
             <p className="text-gray-400">Your wishlist is empty.</p>
           ) : (
-            wishlist.map(({ venue_id, sports_venues }) => {
-              const isWishlisted = wishlist.some(item => item.venue_id === venue_id);
-
-              return (
-                <div
-                  key={venue_id}
-                  className="bg-gray-800 p-4 rounded-xl shadow-md flex justify-between items-center"
-                >
-                  <div>
-                    <h3 className="text-xl font-semibold">{sports_venues?.name}</h3>
-                    <p className="text-sm text-gray-400">{sports_venues?.description}</p>
-                    <p className="text-lg font-semibold mt-2">Rs {sports_venues?.price}</p>
-                  </div>
-
-                  <button
-                    onClick={() => handleWishlistToggle(venue_id)}
-                    disabled={processingId === venue_id}
-                    className={`px-4 py-2 ${
-                      isWishlisted
-                        ? 'bg-red-600 hover:bg-red-700'
-                        : 'bg-green-600 hover:bg-green-700'
-                    } text-white rounded-lg ${
-                      processingId === venue_id ? 'opacity-70 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {processingId === venue_id
-                      ? 'Processing...'
-                      : isWishlisted
-                      ? 'Remove from Wishlist'
-                      : 'Add to Wishlist'}
-                  </button>
+            wishlist.map(({ venue_id, sports_venues }) => (
+              <div
+                key={venue_id}
+                className="bg-gray-800 p-4 rounded-xl shadow-md flex justify-between items-center"
+              >
+                <div>
+                  <h3 className="text-xl font-semibold">{sports_venues?.name}</h3>
+                  <p className="text-sm text-gray-400">{sports_venues?.description}</p>
+                  <p className="text-lg font-semibold mt-2">Rs {sports_venues?.price}</p>
                 </div>
-              );
-            })
+
+                <button
+                  onClick={() => handleWishlistToggle(venue_id)}
+                  disabled={processingId === venue_id}
+                  className={`px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg ${
+                    processingId === venue_id ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {processingId === venue_id ? 'Processing...' : 'Remove from Wishlist'}
+                </button>
+              </div>
+            ))
           )}
         </div>
       </div>

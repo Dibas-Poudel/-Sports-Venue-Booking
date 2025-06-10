@@ -1,68 +1,55 @@
-import { createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
 
-const API_BASE = 'https://sportvenuebackend.onrender.com/api/v1';
-
-const initialState = {
-  items: [],
-  loading: false,
-  error: null,
-  fetchStatus: 'idle',
-  addStatus: 'idle',
-  removeStatus: 'idle',
-};
+const API_BASE = "https://sportvenuebackend.onrender.com/api/v1";
 
 const wishlistSlice = createSlice({
-  name: 'wishlist',
-  initialState,
+  name: "wishlist",
+  initialState: {
+    wishlist: [],
+    loading: false,
+    error: null,
+  },
   reducers: {
     fetchWishlistStart(state) {
       state.loading = true;
-      state.fetchStatus = 'loading';
       state.error = null;
     },
     fetchWishlistSuccess(state, action) {
       state.loading = false;
-      state.fetchStatus = 'succeeded';
-      state.items = action.payload;
+      state.wishlist = action.payload;
     },
     fetchWishlistFailure(state, action) {
       state.loading = false;
-      state.fetchStatus = 'failed';
       state.error = action.payload;
     },
 
     addToWishlistStart(state) {
-      state.addStatus = 'loading';
+      state.loading = true;
       state.error = null;
     },
     addToWishlistSuccess(state, action) {
-      state.addStatus = 'succeeded';
-      state.items.push(action.payload);
+      state.loading = false;
+      state.wishlist.push(action.payload);
     },
     addToWishlistFailure(state, action) {
-      state.addStatus = 'failed';
+      state.loading = false;
       state.error = action.payload;
     },
 
     removeFromWishlistStart(state) {
-      state.removeStatus = 'loading';
+      state.loading = true;
       state.error = null;
     },
     removeFromWishlistSuccess(state, action) {
-      state.removeStatus = 'succeeded';
-      state.items = state.items.filter(item => item.venue_id !== action.payload);
+      state.loading = false;
+      state.wishlist = state.wishlist.filter(
+        (item) => item.sportVenueId.toString() !== action.payload.toString()
+      );
     },
     removeFromWishlistFailure(state, action) {
-      state.removeStatus = 'failed';
+      state.loading = false;
       state.error = action.payload;
-    },
-
-    resetAddStatus(state) {
-      state.addStatus = 'idle';
-    },
-    resetRemoveStatus(state) {
-      state.removeStatus = 'idle';
     },
   },
 });
@@ -77,28 +64,22 @@ export const {
   removeFromWishlistStart,
   removeFromWishlistSuccess,
   removeFromWishlistFailure,
-  resetAddStatus,
-  resetRemoveStatus,
 } = wishlistSlice.actions;
-
-export const wishlistActions = wishlistSlice.actions;
 
 export default wishlistSlice.reducer;
 
-// Fetch Wishlist
+// Async Thunks (manual)
+
 export const fetchWishlist = () => async (dispatch) => {
   dispatch(fetchWishlistStart());
   try {
-    const res = await axios.get(`${API_BASE}/wishlist`, {
-      withCredentials: true,
-    });
+    const res = await axios.get(`${API_BASE}/wishlist`, { withCredentials: true });
     dispatch(fetchWishlistSuccess(res.data.data));
   } catch (error) {
     dispatch(fetchWishlistFailure(error?.response?.data?.message || error.message));
   }
 };
 
-// Add to Wishlist
 export const addToWishlist = (venueId) => async (dispatch) => {
   dispatch(addToWishlistStart());
   try {
@@ -111,7 +92,6 @@ export const addToWishlist = (venueId) => async (dispatch) => {
   }
 };
 
-// Remove from Wishlist
 export const removeFromWishlist = (venueId) => async (dispatch) => {
   dispatch(removeFromWishlistStart());
   try {
