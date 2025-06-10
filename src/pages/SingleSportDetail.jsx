@@ -10,9 +10,10 @@ import { toast } from "react-toastify";
 const SingleSportDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { singleSport, loading, singleStatus } = useSelector((state) => state.sportsVenue);
-  const { items: wishlist, loading: wishlistLoading } = useSelector((state) => state.wishlist);
-  const user = useSelector((state) => state.user.profile);
+
+  const { wishlist = [], loading: wishlistLoading } = useSelector(state => state.wishlist);
+  const { singleSport, loading: sportLoading, singleStatus } = useSelector(state => state.sportsVenue);
+  const user = useSelector(state => state.user.profile);
 
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
@@ -22,7 +23,11 @@ const SingleSportDetail = () => {
     }
   }, [id, dispatch, user]);
 
-  const isWishlisted = wishlist.some(item => item.venue_id === id);
+  // Adjust this if your wishlist items have a different venue id property
+  const isWishlisted = Array.isArray(wishlist) && wishlist.some(item => {
+    // Example if populated: return item.sportVenueId?._id === id;
+    return item.venue_id === id;
+  });
 
   const handleWishlistToggle = () => {
     if (!user) {
@@ -32,13 +37,16 @@ const SingleSportDetail = () => {
 
     if (isWishlisted) {
       dispatch(removeFromWishlist(id));
+      toast.info("Removed from wishlist");
     } else {
       dispatch(addToWishlist(id));
+      toast.success("Added to wishlist");
     }
   };
 
-  if (loading || singleStatus === 'loading') return <Spinner />;
-  if (!singleSport || singleStatus === 'failed') return <p className="text-red-500 text-center">Sport not found.</p>;
+  if (sportLoading || singleStatus === "loading") return <Spinner />;
+  if (!singleSport || singleStatus === "failed")
+    return <p className="text-red-500 text-center">Sport not found.</p>;
 
   return (
     <div className="bg-gray-900 min-h-screen text-white py-10">
@@ -61,21 +69,21 @@ const SingleSportDetail = () => {
               Book now
             </Link>
 
-            {user && (
+            {user ? (
               <button
                 onClick={handleWishlistToggle}
                 disabled={wishlistLoading}
                 className={`${
-                  isWishlisted
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-gray-600 hover:bg-gray-700"
+                  isWishlisted ? "bg-red-600 hover:bg-red-700" : "bg-gray-600 hover:bg-gray-700"
                 } text-white py-2 px-6 rounded-lg transition-all duration-300`}
               >
-                {wishlistLoading ? "Processing..." :
-                  isWishlisted ? "❌ Remove from Wishlist" : "❤️ Add to Wishlist"}
+                {wishlistLoading
+                  ? "Processing..."
+                  : isWishlisted
+                  ? "❌ Remove from Wishlist"
+                  : "❤️ Add to Wishlist"}
               </button>
-            )}
-            {!user && (
+            ) : (
               <p className="text-red-500 font-semibold mt-4">Please log in to add to wishlist</p>
             )}
           </div>
