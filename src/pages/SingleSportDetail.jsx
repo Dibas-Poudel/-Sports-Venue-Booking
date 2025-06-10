@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSingleSport, sportsVenueActions } from "../store/slice/sportsvenue";
@@ -29,10 +29,11 @@ const SingleSportDetail = () => {
     };
   }, [id, dispatch, user?.id]);
 
-const isWishlisted = Array.isArray(wishlist) && wishlist.some(
-  (item) => item.sportVenueId?._id?.toString() === id.toString()
-);
-
+const isWishlisted = useMemo(() => {
+  return Array.isArray(wishlist) && wishlist.some(
+    (item) => item.sportVenueId?._id?.toString() === id.toString()
+  );
+}, [wishlist, id]);
   const handleWishlistToggle = () => {
     if (!user) {
       toast.warn("Please log in to modify wishlist");
