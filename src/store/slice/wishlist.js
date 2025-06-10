@@ -1,69 +1,76 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_BASE = "https://sportvenuebackend.onrender.com/api/v1";
+const API_BASE = "http://localhost:3000/api/v1";
 
-const initialState = {
-  wishlist: [],
-  loading: false,
-  fetchStatus: "idle",
-  addStatus: "idle",
-  removeStatus: "idle",
-  error: null,
-};
+// Fetch wishlist items
+export const fetchWishlist = createAsyncThunk(
+  "wishlist/fetchWishlist",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_BASE}/wishlist`, {
+        withCredentials: true,
+      });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Add to wishlist
+export const addToWishlist = createAsyncThunk(
+  "wishlist/addToWishlist",
+  async (venueId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${API_BASE}/wishlist/${venueId}`,
+        {},
+        { withCredentials: true }
+      );
+      // Refetch updated wishlist
+      dispatch(fetchWishlist());
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Remove from wishlist
+export const removeFromWishlist = createAsyncThunk(
+  "wishlist/removeFromWishlist",
+  async (venueId, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.delete(`${API_BASE}/wishlist/${venueId}`, {
+        withCredentials: true,
+      });
+      // Refetch updated wishlist
+      dispatch(fetchWishlist());
+      return venueId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
 
 const wishlistSlice = createSlice({
   name: "wishlist",
-  initialState,
+  initialState: {
+    wishlist: [],
+    loading: false,
+    addStatus: "idle", // idle | loading | succeeded | failed
+    removeStatus: "idle",
+    error: null,
+  },
   reducers: {
-    // Fetch wishlist
-    fetchWishlistStart(state) {
-      state.fetchStatus = "loading";
-      state.loading = true;
-      state.error = null;
-    },
-    fetchWishlistSuccess(state, action) {
-      state.fetchStatus = "succeeded";
+    clearWishlist(state) {
+      state.wishlist = [];
       state.loading = false;
-      state.wishlist = action.payload;
-    },
-    fetchWishlistFailure(state, action) {
-      state.fetchStatus = "failed";
-      state.loading = false;
-      state.error = action.payload;
-    },
-
-    // Add item to wishlist
-    addWishlistStart(state) {
-      state.addStatus = "loading";
+      state.addStatus = "idle";
+      state.removeStatus = "idle";
       state.error = null;
     },
-    addWishlistSuccess(state, action) {
-      state.addStatus = "succeeded";
-      state.wishlist.push(action.payload);
-    },
-    addWishlistFailure(state, action) {
-      state.addStatus = "failed";
-      state.error = action.payload;
-    },
-
-    // Remove item from wishlist
-    removeWishlistStart(state) {
-      state.removeStatus = "loading";
-      state.error = null;
-    },
-    removeWishlistSuccess(state, action) {
-      state.removeStatus = "succeeded";
-      state.wishlist = state.wishlist.filter(
-        (item) => item.sportVenueId._id !== action.payload
-      );
-    },
-    removeWishlistFailure(state, action) {
-      state.removeStatus = "failed";
-      state.error = action.payload;
-    },
-
-    // Reset add/remove statuses
     resetAddStatus(state) {
       state.addStatus = "idle";
     },
@@ -71,56 +78,51 @@ const wishlistSlice = createSlice({
       state.removeStatus = "idle";
     },
   },
+  extraReducers: (builder) => {
+    builder
+      // Fetch wishlist
+      .addCase(fetchWishlist.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchWishlist.fulfilled, (state, action) => {
+        state.loading = false;
+        state.wishlist = action.payload;
+      })
+      .addCase(fetchWishlist.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Add to wishlist
+      .addCase(addToWishlist.pending, (state) => {
+        state.addStatus = "loading";
+        state.error = null;
+      })
+      .addCase(addToWishlist.fulfilled, (state) => {
+        state.addStatus = "succeeded";
+      })
+      .addCase(addToWishlist.rejected, (state, action) => {
+        state.addStatus = "failed";
+        state.error = action.payload;
+      })
+
+      // Remove from wishlist
+      .addCase(removeFromWishlist.pending, (state) => {
+        state.removeStatus = "loading";
+        state.error = null;
+      })
+      .addCase(removeFromWishlist.fulfilled, (state) => {
+        state.removeStatus = "succeeded";
+      })
+      .addCase(removeFromWishlist.rejected, (state, action) => {
+        state.removeStatus = "failed";
+        state.error = action.payload;
+      });
+  },
 });
 
-export const wishlistActions = wishlistSlice.actions;
-
-export const {
-  fetchWishlistStart,
-  fetchWishlistSuccess,
-  fetchWishlistFailure,
-  addWishlistStart,
-  addWishlistSuccess,
-  addWishlistFailure,
-  removeWishlistStart,
-  removeWishlistSuccess,
-  removeWishlistFailure,
-  resetAddStatus,
-  resetRemoveStatus,
-} = wishlistSlice.actions;
+export const { clearWishlist, resetAddStatus, resetRemoveStatus } =
+  wishlistSlice.actions;
 
 export default wishlistSlice.reducer;
-
-// Thunk async actions
-
-export const fetchWishlist = () => async (dispatch) => {
-  dispatch(fetchWishlistStart());
-  try {
-    const response = await axios.get(`${API_BASE}/wishlist`, { withCredentials: true });
-    dispatch(fetchWishlistSuccess(response.data.data));
-  } catch (error) {
-    dispatch(fetchWishlistFailure(error.response?.data?.message || error.message));
-  }
-};
-
-export const addToWishlist = (venueId) => async (dispatch) => {
-  dispatch(addWishlistStart());
-  try {
-    const response = await axios.post(`${API_BASE}/wishlist/${venueId}`, {}, {
-      withCredentials: true,
-    });
-    dispatch(addWishlistSuccess(response.data.data));
-  } catch (error) {
-    dispatch(addWishlistFailure(error.response?.data?.message || error.message));
-  }
-};
-
-export const removeFromWishlist = (venueId) => async (dispatch) => {
-  dispatch(removeWishlistStart());
-  try {
-    await axios.delete(`${API_BASE}/wishlist/${venueId}`, { withCredentials: true });
-    dispatch(removeWishlistSuccess(venueId));
-  } catch (error) {
-    dispatch(removeWishlistFailure(error.response?.data?.message || error.message));
-  }
-};

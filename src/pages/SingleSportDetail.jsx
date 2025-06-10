@@ -1,31 +1,33 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSingleSport, sportsVenueActions } from "../store/slice/sportsvenue";
+import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import {
+  fetchSingleSport,
+  sportsVenueActions,
+} from "../redux/slices/sportsVenueSlice";
 import {
   fetchWishlist,
   addToWishlist,
   removeFromWishlist,
   wishlistActions,
-} from "../store/slice/wishlist";
-import Spinner from "../components/Spinner";
-import Reviews from "./Reviews";
-import { toast } from "react-toastify";
+} from "../redux/slices/wishlistSlice";
 
 const SingleSportDetail = () => {
-  const { id } = useParams();
   const dispatch = useDispatch();
+  const { id } = useParams();
 
-  const { wishlist, loading: wishlistLoading, addStatus, removeStatus } =
-    useSelector((state) => state.wishlist);
-  const { singleSport, loading: sportLoading } = useSelector(
+  const { user } = useSelector((state) => state.auth);
+  const { wishlist, loading: wishlistLoading, addStatus, removeStatus } = useSelector(
+    (state) => state.wishlist
+  );
+
+  const { singleSport, loading: singleSportLoading } = useSelector(
     (state) => state.sportsVenue
   );
-  const user = useSelector((state) => state.user.profile);
 
   const [processing, setProcessing] = useState(false);
 
-  // Fetch single sport and wishlist on mount
   useEffect(() => {
     dispatch(sportsVenueActions.clearSingleSport());
     dispatch(fetchSingleSport(id));
@@ -37,7 +39,7 @@ const SingleSportDetail = () => {
     };
   }, [id, dispatch, user?.id]);
 
-  // Memoize wishlist check, only if wishlist is loaded
+  // Memoized check if venue is in wishlist
   const isWishlisted = useMemo(() => {
     if (!wishlist || wishlistLoading) return false;
     return wishlist.some(
@@ -45,13 +47,12 @@ const SingleSportDetail = () => {
     );
   }, [wishlist, id, wishlistLoading]);
 
-  // Handle wishlist toggle (add/remove)
   const handleWishlistToggle = () => {
     if (!user) {
       toast.warn("Please log in to modify wishlist");
       return;
     }
-    if (wishlistLoading || processing) return; // block while loading or processing
+    if (wishlistLoading || processing) return; // prevent multiple clicks
 
     setProcessing(true);
 
@@ -62,92 +63,58 @@ const SingleSportDetail = () => {
     }
   };
 
-  // Watch add/remove status to stop processing and show toast
+  // Stop processing when add or remove succeeds/fails
+  useEffect(() => {
+    if (
+      addStatus === "succeeded" ||
+      addStatus === "failed" ||
+      removeStatus === "succeeded" ||
+      removeStatus === "failed"
+    ) {
+      setProcessing(false);
+    }
+  }, [addStatus, removeStatus]);
+
+  // Toast notifications for add
   useEffect(() => {
     if (addStatus === "succeeded") {
       toast.success("Added to wishlist");
       dispatch(wishlistActions.resetAddStatus());
-      setProcessing(false);
     } else if (addStatus === "failed") {
       toast.error("Failed to add to wishlist");
       dispatch(wishlistActions.resetAddStatus());
-      setProcessing(false);
     }
   }, [addStatus, dispatch]);
 
+  // Toast notifications for remove
   useEffect(() => {
     if (removeStatus === "succeeded") {
       toast.info("Removed from wishlist");
       dispatch(wishlistActions.resetRemoveStatus());
-      setProcessing(false);
     } else if (removeStatus === "failed") {
       toast.error("Failed to remove from wishlist");
       dispatch(wishlistActions.resetRemoveStatus());
-      setProcessing(false);
     }
   }, [removeStatus, dispatch]);
 
-  // Show spinner while sport OR wishlist loading
-  if (sportLoading || wishlistLoading) return <Spinner />;
-
-  if (!singleSport)
-    return (
-      <p className="text-red-500 text-center font-semibold">
-        Sport venue not found.
-      </p>
-    );
-
   return (
-    <div className="bg-gray-900 min-h-screen text-white py-10">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
-          <img
-            src={singleSport.image_url || "/images/snooker.jpg"}
-            alt={singleSport.name}
-            className="w-full h-96 object-cover rounded-xl mb-6"
-          />
-          <h2 className="text-3xl font-bold mb-4">{singleSport.name}</h2>
-          <p className="text-gray-300 mb-4">{singleSport.description}</p>
-          <p className="text-lg font-semibold mb-6">
-            Price: Rs {singleSport.price}
-          </p>
-
-          <div className="flex gap-4">
-            <Link
-              to={`/book/${singleSport._id}`}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition-all duration-300 inline-block"
-            >
-              Book now
-            </Link>
-
-            {user ? (
-              <button
-                onClick={handleWishlistToggle}
-                disabled={processing || wishlistLoading}
-                className={`${
-                  isWishlisted
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-gray-600 hover:bg-gray-700"
-                } text-white py-2 px-6 rounded-lg transition-all duration-300`}
-              >
-                {processing
-                  ? "Processing..."
-                  : isWishlisted
-                  ? "❌ Remove from Wishlist"
-                  : "❤️ Add to Wishlist"}
-              </button>
-            ) : (
-              <p className="text-red-500 font-semibold mt-4">
-                Please log in to add to wishlist
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-10">
-          <Reviews venueId={id} user={user} />
-        </div>
-      </div>
+    <div>
+      {/* Example UI showing singleSport details */}
+      {singleSportLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <h1>{singleSport?.name}</h1>
+          {/* Wishlist button */}
+          <button
+            onClick={handleWishlistToggle}
+            disabled={processing || wishlistLoading}
+          >
+            {isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+          </button>
+          {/* Other details */}
+        </>
+      )}
     </div>
   );
 };
