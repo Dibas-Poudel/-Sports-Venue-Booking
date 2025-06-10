@@ -81,6 +81,8 @@ export const {
   resetRemoveStatus,
 } = wishlistSlice.actions;
 
+export const wishlistActions = wishlistSlice.actions;
+
 export default wishlistSlice.reducer;
 
 // Fetch Wishlist
