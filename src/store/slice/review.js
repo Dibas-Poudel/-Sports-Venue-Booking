@@ -35,14 +35,16 @@ export const addReview = ({ venueId, rating, comment }) => async (dispatch) => {
 export const updateReview = ({ reviewId, venueId, rating, comment }) => async (dispatch) => {
   dispatch(reviewActions.updateStart());
   try {
-    await axios.patch(`${API_BASE}/edit/${reviewId}`, { rating, comment }, { withCredentials: true });
+    await axios.patch(`${API_BASE}/edit/${reviewId}`, { rating, comment }, {
+      withCredentials: true, 
+    });
     dispatch(fetchReviews(venueId));
     dispatch(reviewActions.updateSuccess());
-    toast.success('Review updated successfully');
+    toast.success("Review updated successfully");
   } catch (error) {
     console.error("Update Review Error:", error.response?.data || error.message);
     dispatch(reviewActions.updateFailure(error.response?.data?.message || error.message));
-    toast.error('Failed to update review');
+    toast.error("Failed to update review");
   }
 };
 
