@@ -24,22 +24,18 @@ const adminSlice = createSlice({
   name: "admin",
   initialState,
   reducers: {
-    /* ----- STATUS RESET ----- */
     resetStatus: (state, { payload }) => {
       state.status[payload] = "idle";
     },
-
-    /* ----- FORM STATE MANAGEMENT ----- */
     updateNewGame: (state, { payload }) => {
       state.newGame = { ...state.newGame, ...payload };
     },
     setSelectedGame: (state, { payload }) => {
       state.selectedGame = payload;
     },
-
-    /* ----- FETCH ADMIN DATA ----- */
     fetchStart: (state) => {
       state.status.fetch = "loading";
+      state.error = null;
     },
     fetchSuccess: (state, { payload }) => {
       state.status.fetch = "succeeded";
@@ -50,10 +46,9 @@ const adminSlice = createSlice({
       state.status.fetch = "failed";
       state.error = payload;
     },
-
-    /* ----- ADD GAME ----- */
     addStart: (state) => {
       state.status.add = "loading";
+      state.error = null;
     },
     addSuccess: (state, { payload }) => {
       state.status.add = "succeeded";
@@ -64,10 +59,9 @@ const adminSlice = createSlice({
       state.status.add = "failed";
       state.error = payload;
     },
-
-    /* ----- UPDATE GAME ----- */
     editStart: (state) => {
       state.status.update = "loading";
+      state.error = null;
     },
     editSuccess: (state, { payload }) => {
       state.status.update = "succeeded";
@@ -78,10 +72,9 @@ const adminSlice = createSlice({
       state.status.update = "failed";
       state.error = payload;
     },
-
-    /* ----- DELETE GAME ----- */
     delStart: (state) => {
       state.status.delete = "loading";
+      state.error = null;
     },
     delSuccess: (state, { payload }) => {
       state.status.delete = "succeeded";
@@ -91,10 +84,9 @@ const adminSlice = createSlice({
       state.status.delete = "failed";
       state.error = payload;
     },
-
-    /* ----- VERIFY BOOKING ----- */
     verifyStart: (state) => {
       state.status.verify = "loading";
+      state.error = null;
     },
     verifySuccess: (state, { payload }) => {
       state.status.verify = "succeeded";
@@ -104,10 +96,9 @@ const adminSlice = createSlice({
       state.status.verify = "failed";
       state.error = payload;
     },
-
-    /* ----- DELETE BOOKING ----- */
     bDelStart: (state) => {
       state.status.bookingDelete = "loading";
+      state.error = null;
     },
     bDelSuccess: (state, { payload }) => {
       state.status.bookingDelete = "succeeded";
@@ -124,7 +115,7 @@ export const fetchAdminData = () => async (dispatch) => {
   dispatch(adminSlice.actions.fetchStart());
   try {
     const res = await axios.get(`${BASE_URL}/data`, { withCredentials: true });
-    dispatch(adminSlice.actions.fetchSuccess(res.data));
+    dispatch(adminSlice.actions.fetchSuccess(res.data.data));
   } catch (err) {
     const msg = err.response?.data?.message || err.message;
     dispatch(adminSlice.actions.fetchFail(msg));
@@ -180,10 +171,14 @@ export const deleteGame = (gameId) => async (dispatch) => {
 export const verifyBooking = ({ bookingId, verified }) => async (dispatch) => {
   dispatch(adminSlice.actions.verifyStart());
   try {
-    const res = await axios.patch(`${BASE_URL}/bookings/${bookingId}/verify`, { verified }, {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    });
+    const res = await axios.patch(
+      `${BASE_URL}/bookings/${bookingId}/verify`,
+      { verified },
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
     dispatch(adminSlice.actions.verifySuccess(res.data.data));
     toast.success(verified ? "Booking verified!" : "Booking rejected!");
   } catch (err) {
