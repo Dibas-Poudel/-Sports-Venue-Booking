@@ -151,7 +151,7 @@ const AdminDashboard = () => {
               <h3 className="text-xl font-bold">{game.name}</h3>
               <p className="text-gray-700">{game.type}</p>
               <p className="mt-2">{game.description}</p>
-              <p className="mt-1 font-semibold">Price: ${game.price}</p>
+              <p className="mt-1 font-semibold">Price: Rs.{game.price}</p>
 
               <div className="mt-4 flex space-x-2">
                 <button
