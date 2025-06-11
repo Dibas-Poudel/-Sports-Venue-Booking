@@ -207,4 +207,5 @@ export const deleteBooking = (bookingId) => async (dispatch) => {
 };
 
 export const { resetStatus, updateNewGame, setSelectedGame } = adminSlice.actions;
+export const adminActions = adminSlice.actions;
 export default adminSlice.reducer;
