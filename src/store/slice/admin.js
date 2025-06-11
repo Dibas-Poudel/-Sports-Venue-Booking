@@ -258,4 +258,7 @@ export const {
   clearSelectedGame,
 } = adminSlice.actions;
 
+export const adminActions = adminSlice.actions;
+
+
 export default adminSlice.reducer;
