@@ -12,7 +12,7 @@ import {
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
-  const { games, bookings, selectedGame, newGame, status } = useSelector(
+  const { games, bookings, selectedGame, newGame = {}, status } = useSelector(
     (state) => state.admin
   );
 
@@ -47,8 +47,17 @@ const AdminPanel = () => {
     status.verify,
   ].some((s) => s === "loading");
 
+  // Validate newGame fields before adding
+  const canAddGame =
+    newGame?.name?.trim() &&
+    newGame?.type?.trim() &&
+    !isProcessing;
+
   // Handlers
-  const handleAddGame = () => {
+  const handleAddGame = (e) => {
+    e.preventDefault();
+    if (!canAddGame) return;
+
     dispatch(
       addGame({
         ...newGame,
@@ -57,7 +66,8 @@ const AdminPanel = () => {
     );
   };
 
-  const handleUpdateGame = () => {
+  const handleUpdateGame = (e) => {
+    e.preventDefault();
     if (!selectedGame) return;
     dispatch(
       updateGame({
@@ -141,7 +151,7 @@ const AdminPanel = () => {
         <input
           type="number"
           placeholder="Game Price"
-          value={newGame.price || ""}
+          value={newGame.price !== undefined ? newGame.price : ""}
           onChange={(e) =>
             dispatch(adminActions.updateNewGame({ price: e.target.value }))
           }
@@ -162,9 +172,9 @@ const AdminPanel = () => {
         />
         <button
           onClick={handleAddGame}
-          disabled={isProcessing || !newGame.name || !newGame.type}
+          disabled={!canAddGame}
           className={`bg-blue-600 text-white px-4 py-2 rounded-md ${
-            isProcessing || !newGame.name || !newGame.type
+            !canAddGame
               ? "opacity-70 cursor-not-allowed"
               : "hover:bg-blue-700"
           }`}
@@ -281,33 +291,38 @@ const AdminPanel = () => {
             className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
             disabled={isProcessing}
           />
-          <button
-            onClick={handleUpdateGame}
-            disabled={isProcessing}
-            className={`bg-green-600 text-white px-4 py-2 rounded-md ${
-              isProcessing ? "opacity-70 cursor-not-allowed" : "hover:bg-green-700"
-            }`}
-          >
-            {status.update === "loading" ? "Updating..." : "Update Game"}
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={handleUpdateGame}
+              disabled={isProcessing}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+            >
+              {status.update === "loading" ? "Updating..." : "Update Game"}
+            </button>
+            <button
+              onClick={() => dispatch(adminActions.setSelectedGame(null))}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
         </section>
       )}
 
-      {/* Bookings Management */}
-      <section className="bookings-management bg-gray-600 p-4 rounded-md shadow-sm">
+      {/* Bookings Section */}
+      <section>
         <h2 className="text-2xl font-semibold mb-4">Bookings</h2>
-
         {bookings.length === 0 ? (
           <p>No bookings available.</p>
         ) : (
           bookings.map((booking) => (
             <div
               key={booking.id}
-              className="bg-gray-700 p-4 mb-4 rounded-md flex flex-col md:flex-row md:items-center md:justify-between"
+              className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm flex justify-between items-center"
             >
-              <div className="mb-2 md:mb-0">
+              <div>
                 <p>
-                  <strong>Name:</strong> {booking.name}
+                  <strong>User:</strong> {booking.name}
                 </p>
                 <p>
                   <strong>Venue:</strong> {booking.venue_name}
@@ -319,39 +334,31 @@ const AdminPanel = () => {
                   <strong>Time:</strong> {booking.time}
                 </p>
                 <p>
-                  <strong>Total Price:</strong> Rs.{booking.total_price ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Verified:</strong>{" "}
+                  <strong>Status:</strong>{" "}
                   {booking.verified ? (
-                    <span className="text-green-400 font-semibold">Yes</span>
+                    <span className="text-green-400">Verified</span>
                   ) : (
-                    <span className="text-red-400 font-semibold">No</span>
+                    <span className="text-red-400">Not Verified</span>
                   )}
                 </p>
+                <p>
+                  <strong>Total Price:</strong> Rs.{booking.total_price}
+                </p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-col space-y-2">
                 <button
                   onClick={() => handleVerifyBooking(booking.id, booking.verified)}
                   disabled={status.verify === "loading"}
-                  className={`px-3 py-1 rounded ${
-                    booking.verified
-                      ? "bg-yellow-600 text-white hover:bg-yellow-700"
-                      : "bg-green-600 text-white hover:bg-green-700"
-                  } disabled:opacity-70`}
+                  className="bg-yellow-500 text-black px-3 py-1 rounded hover:bg-yellow-600"
                 >
-                  {status.verify === "loading"
-                    ? "Processing..."
-                    : booking.verified
-                    ? "Unverify"
-                    : "Verify"}
+                  {booking.verified ? "Unverify" : "Verify"}
                 </button>
                 <button
                   onClick={() => handleDeleteBooking(booking.id)}
                   disabled={status.bookingDelete === "loading"}
-                  className="bg-red-600 text-white px-3 py-1 rounded disabled:opacity-70 hover:bg-red-700"
+                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
                 >
-                  {status.bookingDelete === "loading" ? "Deleting..." : "Delete"}
+                  Delete Booking
                 </button>
               </div>
             </div>
