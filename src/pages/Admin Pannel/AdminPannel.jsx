@@ -130,9 +130,9 @@ const AdminPanel = () => {
           disabled={isProcessing}
         >
           <option value="">Select Type</option>
-          <option value="Indoor">Indoor</option>
-          <option value="Outdoor">Outdoor</option>
-          <option value="PlayStation">PlayStation</option>
+          <option value="Indoor">INDOOR</option>
+          <option value="Outdoor">OUTDOOR</option>
+          <option value="PlayStation">PLAYSTATION</option>
         </select>
         <textarea
           placeholder="Game Description"
@@ -158,7 +158,7 @@ const AdminPanel = () => {
         <input
           type="text"
           placeholder="Image URL"
-          value={newGame.image_url}
+          value={newGame.imageUrl}
           onChange={(e) =>
             dispatch(adminActions.updateNewGame({ imageUrl: e.target.value }))
           }
