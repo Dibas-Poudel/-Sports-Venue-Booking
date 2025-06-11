@@ -9,9 +9,11 @@ const AdminPanel = () => {
   const dispatch = useDispatch();
   const { games, bookings, selectedGame, newGame, status } = useSelector(state => state.admin);
 
-  useEffect(() => {
-    if (status.fetch === "idle") dispatch(fetchAdminData());
-  }, [dispatch, status.fetch]);
+useEffect(() => {
+  if (status.fetch === "idle" && games.length === 0 && bookings.length === 0) {
+    dispatch(fetchAdminData());
+  }
+}, [dispatch, status.fetch, games.length, bookings.length]);
 
   useEffect(() => {
     const timers = Object.entries(status)
