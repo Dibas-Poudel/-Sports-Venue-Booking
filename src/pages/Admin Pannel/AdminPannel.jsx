@@ -130,9 +130,9 @@ const AdminPanel = () => {
           disabled={isProcessing}
         >
           <option value="">Select Type</option>
-          <option value="Indoor">INDOOR</option>
-          <option value="Outdoor">OUTDOOR</option>
-          <option value="PlayStation">PLAYSTATION</option>
+          <option value="INDOOR">INDOOR</option>
+          <option value="OUTDOOR">OUTDOOR</option>
+          <option value="PLAYSTATION">PLAYSTATION</option>
         </select>
         <textarea
           placeholder="Game Description"
@@ -251,9 +251,9 @@ const AdminPanel = () => {
             disabled={isProcessing}
           >
             <option value="">Select Type</option>
-            <option value="Indoor">Indoor</option>
-            <option value="Outdoor">Outdoor</option>
-            <option value="PlayStation">PlayStation</option>
+            <option value="INDOOR">INDOOR</option>
+            <option value="OUTDOOR">OUTDOOR</option>
+            <option value="PLAYSTATION">PLAYSTATION</option>
           </select>
           <textarea
             value={selectedGame.description}
