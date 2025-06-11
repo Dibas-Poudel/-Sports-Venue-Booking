@@ -119,7 +119,7 @@ useEffect(() => {
       <div className="max-w-4xl mx-auto px-6">
         <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
           <img
-            src={singleSport.image_url || "/images/snooker.jpg"}
+            src={singleSport.imageUrl || "/images/snooker.jpg"}
             alt={singleSport.name}
             className="w-full h-96 object-cover rounded-xl mb-6"
           />

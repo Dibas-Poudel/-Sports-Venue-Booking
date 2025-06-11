@@ -14,7 +14,7 @@ const Register = () => {
 
   useEffect(() => {
     if (registerStatus === 'succeeded') {
-      navigate("/login");
+      navigate("/dashboard");
     }
   }, [registerStatus, navigate]);
 

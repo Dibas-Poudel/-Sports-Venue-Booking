@@ -15,7 +15,7 @@ export function fetchBookings() {
       dispatch(bookingActions.fetchSuccess(response.data.data));
     } catch (error) {
       dispatch(bookingActions.fetchFailure(error.message));
-      toast.error('Failed to fetch bookings');
+      toast.error(error.message);
     }
   };
 }
@@ -34,7 +34,7 @@ export function createBooking({ venueName, date, time, name }) {
       toast.success('Booking created successfully!');
     } catch (error) {
       dispatch(bookingActions.createFailure(error.message));
-      toast.error('Failed to create booking');
+      toast.error(error.message);
     }
   };
 }
@@ -54,7 +54,7 @@ export function updateBooking({ bookingId, name, date, time }) {
       toast.success('Booking updated successfully!');
     } catch (error) {
       dispatch(bookingActions.updateFailure(error.message));
-      toast.error('Failed to update booking');
+      toast.error(error.message);
     }
   };
 }
@@ -70,7 +70,7 @@ export function deleteBooking(bookingId) {
       toast.success('Booking deleted successfully!');
     } catch (error) {
       dispatch(bookingActions.deleteFailure(error.message));
-      toast.error('Failed to delete booking');
+      toast.error(error.message);
     }
   };
 }
@@ -106,7 +106,6 @@ export function fetchVenueName(venueId) {
     dispatch(bookingActions.fetchStart());
     try {
       const response = await axios.get(`${BASE_URL}/${venueId}`);
-      // Fix here:
       const venueName = response.data.data.name; 
 
       dispatch(bookingActions.fetchNameSuccess(venueName));
