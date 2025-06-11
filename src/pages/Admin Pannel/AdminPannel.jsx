@@ -9,12 +9,12 @@ import {
   verifyBooking,
   adminActions,
 } from "../../store/slice/admin";
-import RevenueAnalytics from "./Chart";
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
-  const { games, bookings, selectedGame, newGame, status } =
-    useSelector((state) => state.admin);
+  const { games, bookings, selectedGame, newGame, status } = useSelector(
+    (state) => state.admin
+  );
 
   useEffect(() => {
     if (
@@ -26,20 +26,19 @@ const AdminPanel = () => {
     }
   }, [dispatch, games.length, bookings.length, status.fetch]);
 
-  // Status reset effect
   useEffect(() => {
     const timers = [];
 
-    Object.keys(status).forEach((action) => {
-      if (status[action] === "succeeded" || status[action] === "failed") {
+    Object.entries(status).forEach(([key, value]) => {
+      if (value === "succeeded" || value === "failed") {
         const timer = setTimeout(() => {
-          dispatch(adminActions.resetStatus(action));
+          dispatch(adminActions.resetStatus(key));
         }, 1000);
         timers.push(timer);
       }
     });
 
-    return () => timers.forEach((timer) => clearTimeout(timer));
+    return () => timers.forEach(clearTimeout);
   }, [status, dispatch]);
 
   const handleAddGame = () => {
@@ -66,7 +65,7 @@ const AdminPanel = () => {
   };
 
   const handleDeleteGame = (gameId, gameType) => {
-    dispatch(deleteGame(gameId, gameType));
+    dispatch(deleteGame({ gameId, gameType }));
   };
 
   const handleVerifyBooking = (bookingId, currentStatus) => {
@@ -178,7 +177,7 @@ const AdminPanel = () => {
         </button>
       </div>
 
-      {/* Display Games */}
+      {/* Game List */}
       <h2 className="text-2xl font-semibold mb-4">Manage Games</h2>
       <div className="game-list mb-8">
         {games.map((game) => (
@@ -209,7 +208,7 @@ const AdminPanel = () => {
                 Edit
               </button>
               <button
-                onClick={() => handleDeleteGame(game.id, game.type)} 
+                onClick={() => handleDeleteGame(game.id, game.type)}
                 className="bg-red-500 text-white px-3 py-1 rounded"
               >
                 Delete
@@ -219,7 +218,7 @@ const AdminPanel = () => {
         ))}
       </div>
 
-      {/* Edit Selected Game */}
+      {/* Edit Game Form */}
       {selectedGame && (
         <div className="edit-game-form mb-8 bg-gray-800 p-4 rounded-lg shadow-sm">
           <h2 className="text-2xl font-semibold mb-4">Edit Game</h2>
@@ -284,7 +283,7 @@ const AdminPanel = () => {
           />
           <input
             type="text"
-            value={selectedGame.image_url}
+            value={selectedGame.imageUrl}
             onChange={(e) =>
               dispatch(
                 adminActions.setSelectedGame({
@@ -319,7 +318,7 @@ const AdminPanel = () => {
         </div>
       )}
 
-      {/* Manage Bookings */}
+      {/* Booking List */}
       <h2 className="text-2xl font-semibold mb-4">Manage Bookings</h2>
       <div className="booking-list">
         {bookings.map((booking) => (
@@ -331,58 +330,40 @@ const AdminPanel = () => {
               <strong>User ID:</strong> {booking.user_id}
             </p>
             <p>
-              <strong>Name:</strong> {booking.name}
-            </p>
-            <p>
               <strong>Venue:</strong> {booking.venue_name}
             </p>
             <p>
-              <strong>Date:</strong>{" "}
-              {new Date(booking.date).toLocaleDateString()}
+              <strong>Date:</strong> {booking.date}
             </p>
             <p>
               <strong>Time:</strong> {booking.time}
             </p>
             <p>
-              <strong>Status:</strong>{" "}
-              {booking.verified ? "Verified" : "Pending"}
+              <strong>Verified:</strong>{" "}
+              {booking.verified ? "Yes" : "No"}
             </p>
-            <div className="mt-2">
+            <p>
+              <strong>Total Price:</strong> Rs.{booking.total_price}
+            </p>
+            <div className="mt-4 flex space-x-4">
               <button
                 onClick={() =>
                   handleVerifyBooking(booking.booking_id, booking.verified)
                 }
-                disabled={isProcessing}
-                className={`${
-                  booking.verified
-                    ? "bg-yellow-500 hover:bg-yellow-600"
-                    : "bg-blue-600 hover:bg-blue-700"
-                } text-white px-4 py-2 rounded-md ${
-                  isProcessing ? "opacity-70 cursor-not-allowed" : ""
-                }`}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
               >
-                {status.verify === "loading"
-                  ? "Processing..."
-                  : booking.verified
-                  ? "Unverify Booking"
-                  : "Verify Booking"}
+                {booking.verified ? "Unverify" : "Verify"}
               </button>
               <button
                 onClick={() => handleDeleteBooking(booking.booking_id)}
-                disabled={isProcessing}
-                className={`bg-red-600 text-white px-4 py-2 rounded-md ml-2 ${
-                  isProcessing
-                    ? "opacity-70 cursor-not-allowed"
-                    : "hover:bg-red-700"
-                }`}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
               >
-                {status.bookingDelete === "loading" ? "Deleting..." : "Delete"}
+                Delete
               </button>
             </div>
           </div>
         ))}
       </div>
-
     </div>
   );
 };
