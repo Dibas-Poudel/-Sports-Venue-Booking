@@ -1,91 +1,49 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchAdminData,
-  addGame,
-  updateGame,
-  deleteGame,
-  deleteBooking,
-  verifyBooking,
-  adminActions,
+  fetchAdminData, addGame, updateGame, deleteGame, deleteBooking,
+  verifyBooking, updateNewGame, setSelectedGame, resetStatus
 } from "../../store/slice/admin";
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
-  const { games, bookings, selectedGame, newGame = {}, status } = useSelector(
-    (state) => state.admin
-  );
+  const { games, bookings, selectedGame, newGame, status } = useSelector(state => state.admin);
 
-  // Fetch initial admin data if empty and idle
   useEffect(() => {
-    if (
-      games.length === 0 &&
-      bookings.length === 0 &&
-      status.fetch === "idle"
-    ) {
-      dispatch(fetchAdminData());
-    }
-  }, [dispatch, games.length, bookings.length, status.fetch]);
+    if (status.fetch === "idle") dispatch(fetchAdminData());
+  }, [dispatch, status.fetch]);
 
-  // Reset status after success or failure to clear UI state
   useEffect(() => {
     const timers = Object.entries(status)
       .filter(([, value]) => value === "succeeded" || value === "failed")
-      .map(([key]) =>
-        setTimeout(() => dispatch(adminActions.resetStatus(key)), 1000)
-      );
-
+      .map(([key]) => setTimeout(() => dispatch(resetStatus(key)), 1500));
     return () => timers.forEach(clearTimeout);
   }, [status, dispatch]);
 
-  // Check if any action is loading to disable inputs/buttons
-  const isProcessing = [
-    status.add,
-    status.update,
-    status.delete,
-    status.bookingDelete,
-    status.verify,
-  ].some((s) => s === "loading");
+  const isProcessing = Object.values(status).includes("loading");
+  const canAddGame = newGame.name?.trim() && newGame.type?.trim() && newGame.imageUrl?.trim() && !isProcessing;
 
-  // Validate newGame fields before adding
-  const canAddGame =
-    newGame?.name?.trim() &&
-    newGame?.type?.trim() &&
-    !isProcessing;
-
-  // Handlers
-  const handleAddGame = (e) => {
+ const handleAddGame = (e) => {
     e.preventDefault();
     if (!canAddGame) return;
-
-    dispatch(
-      addGame({
-        ...newGame,
-        price: parseFloat(newGame.price) || 0,
-      })
-    );
+    dispatch(addGame({ ...newGame, price: parseFloat(newGame.price) || 0 }));
   };
 
-  const handleUpdateGame = (e) => {
-    e.preventDefault();
-    if (!selectedGame) return;
-    dispatch(
-      updateGame({
-        gameId: selectedGame.id,
-        gameData: {
-          ...selectedGame,
-          price: parseFloat(selectedGame.price) || 0,
-        },
-      })
-    );
+const handleUpdateGame = (e) => {
+  e.preventDefault();
+  if (!selectedGame || !selectedGame._id) return; 
+  dispatch(updateGame({
+    gameId: selectedGame._id,
+    gameData: { ...selectedGame, price: parseFloat(selectedGame.price) || 0 }
+  }));
+};
+
+  const handleDeleteGame = (gameId) => {
+    dispatch(deleteGame(gameId));
   };
 
-  const handleDeleteGame = (gameId, gameType) => {
-    dispatch(deleteGame({ gameId, gameType }));
-  };
-
-  const handleVerifyBooking = (bookingId, currentStatus) => {
-    dispatch(verifyBooking({ bookingId, verified: !currentStatus }));
+  const handleVerifyBooking = (bookingId, verified) => {
+    dispatch(verifyBooking({ bookingId, verified: !verified }));
   };
 
   const handleDeleteBooking = (bookingId) => {
@@ -94,9 +52,6 @@ const AdminPanel = () => {
     }
   };
 
-  const handleRefreshData = () => {
-    dispatch(fetchAdminData());
-  };
 
   return (
     <div className="admin-panel p-6 bg-gray-700 min-h-screen text-white">
@@ -104,265 +59,135 @@ const AdminPanel = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Panel</h1>
         <button
-          onClick={handleRefreshData}
+          onClick={() => dispatch(fetchAdminData())}
           disabled={status.fetch === "loading"}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-70"
         >
           {status.fetch === "loading" ? "Refreshing..." : "Refresh Data"}
         </button>
       </div>
+{/* Add Game */}
+<section className="add-game-form mb-8 bg-gray-500 p-4 rounded-lg shadow-sm">
+  <h2 className="text-2xl font-semibold mb-4">Add New Game</h2>
 
-      {/* Add Game Form */}
-      <section className="add-game-form mb-8 bg-gray-500 p-4 rounded-lg shadow-sm">
-        <h2 className="text-2xl font-semibold mb-4">Add New Game</h2>
+  <input
+    type="text"
+    placeholder="Game Name"
+    value={newGame.name || ""}
+    onChange={(e) => dispatch(updateNewGame({ name: e.target.value }))}
+    className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+    disabled={isProcessing}
+  />
+  <select
+    value={newGame.type || ""}
+    onChange={(e) => dispatch(updateNewGame({ type: e.target.value }))}
+    className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+    disabled={isProcessing}
+  >
+    <option value="">Select Type</option>
+    <option value="INDOOR">INDOOR</option>
+    <option value="OUTDOOR">OUTDOOR</option>
+    <option value="PLAYSTATION">PLAYSTATION</option>
+  </select>
+  <textarea
+    placeholder="Game Description"
+    value={newGame.description || ""}
+    onChange={(e) => dispatch(updateNewGame({ description: e.target.value }))}
+    className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+    disabled={isProcessing}
+  />
+  <input
+    type="number"
+    placeholder="Game Price"
+    value={newGame.price !== undefined ? newGame.price : ""}
+    onChange={(e) => dispatch(updateNewGame({ price: e.target.value }))}
+    className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+    disabled={isProcessing}
+    min="0"
+    step="0.01"
+  />
+  <input
+    type="text"
+    placeholder="Image URL"
+    value={newGame.imageUrl || ""}
+    onChange={(e) => dispatch(updateNewGame({ imageUrl: e.target.value }))}
+    className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
+    disabled={isProcessing}
+  />
+  <button
+    onClick={handleAddGame}
+    disabled={!canAddGame}
+    className={`bg-blue-600 text-white px-4 py-2 rounded-md ${
+      !canAddGame ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
+    }`}
+  >
+    {status.add === "loading" ? "Adding..." : "Add Game"}
+  </button>
+</section>
 
-        <input
-          type="text"
-          placeholder="Game Name"
-          value={newGame.name || ""}
-          onChange={(e) =>
-            dispatch(adminActions.updateNewGame({ name: e.target.value }))
-          }
-          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-          disabled={isProcessing}
-        />
-        <select
-          value={newGame.type || ""}
-          onChange={(e) =>
-            dispatch(adminActions.updateNewGame({ type: e.target.value }))
-          }
-          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-          disabled={isProcessing}
-        >
-          <option value="">Select Type</option>
-          <option value="INDOOR">INDOOR</option>
-          <option value="OUTDOOR">OUTDOOR</option>
-          <option value="PLAYSTATION">PLAYSTATION</option>
-        </select>
-        <textarea
-          placeholder="Game Description"
-          value={newGame.description || ""}
-          onChange={(e) =>
-            dispatch(adminActions.updateNewGame({ description: e.target.value }))
-          }
-          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-          disabled={isProcessing}
-        />
-        <input
-          type="number"
-          placeholder="Game Price"
-          value={newGame.price !== undefined ? newGame.price : ""}
-          onChange={(e) =>
-            dispatch(adminActions.updateNewGame({ price: e.target.value }))
-          }
-          className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-          disabled={isProcessing}
-          min="0"
-          step="0.01"
-        />
-        <input
-          type="text"
-          placeholder="Image URL"
-          value={newGame.imageUrl || ""}
-          onChange={(e) =>
-            dispatch(adminActions.updateNewGame({ imageUrl: e.target.value }))
-          }
-          className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
-          disabled={isProcessing}
-        />
-        <button
-          onClick={handleAddGame}
-          disabled={!canAddGame}
-          className={`bg-blue-600 text-white px-4 py-2 rounded-md ${
-            !canAddGame
-              ? "opacity-70 cursor-not-allowed"
-              : "hover:bg-blue-700"
-          }`}
-        >
-          {status.add === "loading" ? "Adding..." : "Add Game"}
-        </button>
-      </section>
+        {/* Edit Game */}
+        {selectedGame && (
+          <section className="edit-game-form mb-8 bg-gray-800 p-4 rounded-lg shadow-sm">
+            <h2 className="text-2xl font-semibold mb-4">Edit Game</h2>
 
-      {/* Manage Games */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Manage Games</h2>
-        {games.length === 0 ? (
-          <p>No games available.</p>
-        ) : (
-          games.map((game) => (
-            <div
-              key={game.id}
-              className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm"
-            >
-              <h3 className="font-semibold text-lg">{game.name || "Unnamed"}</h3>
-              <p>
-                <strong>Type:</strong> {game.type || "N/A"}
-              </p>
-              <p>
-                <strong>Description:</strong> {game.description || "No description"}
-              </p>
-              <p>
-                <strong>Price:</strong> Rs.{game.price ?? "N/A"}
-              </p>
-              <div className="mt-4 flex space-x-4">
-                <button
-                  onClick={() => dispatch(adminActions.setSelectedGame(game))}
-                  disabled={isProcessing}
-                  className={`bg-yellow-500 text-white px-4 py-2 rounded-md ${
-                    isProcessing ? "opacity-70 cursor-not-allowed" : "hover:bg-yellow-600"
-                  }`}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteGame(game.id, game.type)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </section>
-
-      {/* Edit Game Form */}
-      {selectedGame && (
-        <section className="edit-game-form mb-8 bg-gray-800 p-4 rounded-lg shadow-sm">
-          <h2 className="text-2xl font-semibold mb-4">Edit Game</h2>
-
-          <input
-            type="text"
-            value={selectedGame.name || ""}
-            onChange={(e) =>
-              dispatch(
-                adminActions.setSelectedGame({ ...selectedGame, name: e.target.value })
-              )
-            }
-            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-            disabled={isProcessing}
-          />
-          <select
-            value={selectedGame.type || ""}
-            onChange={(e) =>
-              dispatch(
-                adminActions.setSelectedGame({ ...selectedGame, type: e.target.value })
-              )
-            }
-            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-            disabled={isProcessing}
-          >
-            <option value="">Select Type</option>
-            <option value="INDOOR">INDOOR</option>
-            <option value="OUTDOOR">OUTDOOR</option>
-            <option value="PLAYSTATION">PLAYSTATION</option>
-          </select>
-          <textarea
-            value={selectedGame.description || ""}
-            onChange={(e) =>
-              dispatch(
-                adminActions.setSelectedGame({ ...selectedGame, description: e.target.value })
-              )
-            }
-            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-            disabled={isProcessing}
-          />
-          <input
-            type="number"
-            value={selectedGame.price ?? ""}
-            onChange={(e) =>
-              dispatch(
-                adminActions.setSelectedGame({ ...selectedGame, price: e.target.value })
-              )
-            }
-            className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
-            disabled={isProcessing}
-            min="0"
-            step="0.01"
-          />
-          <input
-            type="text"
-            value={selectedGame.imageUrl || ""}
-            onChange={(e) =>
-              dispatch(
-                adminActions.setSelectedGame({ ...selectedGame, imageUrl: e.target.value })
-              )
-            }
-            className="mb-4 border border-gray-300 p-2 w-full rounded-md text-black"
-            disabled={isProcessing}
-          />
-          <div className="flex space-x-4">
+            <input
+              type="text"
+              value={selectedGame.name || ""}
+              onChange={(e) =>
+                dispatch(setSelectedGame({ ...selectedGame, name: e.target.value }))
+              }
+              className="mb-2 border border-gray-300 p-2 w-full rounded-md text-black"
+              disabled={isProcessing}
+            />
             <button
-              onClick={handleUpdateGame}
+              onClick={handleUpdateGame} 
               disabled={isProcessing}
               className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
             >
               {status.update === "loading" ? "Updating..." : "Update Game"}
             </button>
-            <button
-              onClick={() => dispatch(adminActions.setSelectedGame(null))}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-            >
-              Cancel
-            </button>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
+      {/* Manage Games */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4">Manage Games</h2>
+        {games?.length > 0 ? (
+          games.map((game) => (
+            <div key={game._id} className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm">
+              <h3 className="font-semibold text-lg">{game.name || "Unnamed"}</h3>
+              <p><strong>Type:</strong> {game.type || "N/A"}</p>
+              <p><strong>Description:</strong> {game.description || "No description"}</p>
+              <p><strong>Price:</strong> Rs.{game.price ?? "N/A"}</p>
+              <div className="mt-4 flex space-x-4">
+                <button onClick={() => dispatch(setSelectedGame(game))}>Edit</button>
+                <button onClick={() => handleDeleteGame(game._id)}>Delete</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p>No games available.</p>
+        )}
+      </section>
 
       {/* Bookings Section */}
       <section>
         <h2 className="text-2xl font-semibold mb-4">Bookings</h2>
-        {bookings.length === 0 ? (
-          <p>No bookings available.</p>
-        ) : (
+        {bookings?.length > 0 ? (
           bookings.map((booking) => (
-            <div
-              key={booking.id}
-              className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm flex justify-between items-center"
-            >
-              <div>
-                <p>
-                  <strong>User:</strong> {booking.name}
-                </p>
-                <p>
-                  <strong>Venue:</strong> {booking.venue_name}
-                </p>
-                <p>
-                  <strong>Date:</strong> {booking.date}
-                </p>
-                <p>
-                  <strong>Time:</strong> {booking.time}
-                </p>
-                <p>
-                  <strong>Status:</strong>{" "}
-                  {booking.verified ? (
-                    <span className="text-green-400">Verified</span>
-                  ) : (
-                    <span className="text-red-400">Not Verified</span>
-                  )}
-                </p>
-                <p>
-                  <strong>Total Price:</strong> Rs.{booking.total_price}
-                </p>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <button
-                  onClick={() => handleVerifyBooking(booking.id, booking.verified)}
-                  disabled={status.verify === "loading"}
-                  className="bg-yellow-500 text-black px-3 py-1 rounded hover:bg-yellow-600"
-                >
+            <div key={booking._id} className="bg-gray-800 p-4 mb-4 rounded-md shadow-sm">
+              <p><strong>User:</strong> {booking.userId?.name || "Unknown"}</p>
+              <p><strong>Venue:</strong> {booking.venue_name}</p>
+              <p><strong>Status:</strong> {booking.verified ? "Verified" : "Not Verified"}</p>
+              <div className="flex space-x-2">
+                <button onClick={() => handleVerifyBooking(booking._id, booking.verified)}>
                   {booking.verified ? "Unverify" : "Verify"}
                 </button>
-                <button
-                  onClick={() => handleDeleteBooking(booking.id)}
-                  disabled={status.bookingDelete === "loading"}
-                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                >
-                  Delete Booking
-                </button>
+                <button onClick={() => handleDeleteBooking(booking._id)}>Delete</button>
               </div>
             </div>
           ))
+        ) : (
+          <p>No bookings available.</p>
         )}
       </section>
     </div>

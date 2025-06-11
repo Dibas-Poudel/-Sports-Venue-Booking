@@ -2,15 +2,12 @@ import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1/admin";
+const BASE_URL = 'https://sportvenuebackend.onrender.com/api/v1/admin';
+
 
 const initialState = {
   games: [],
   bookings: [],
-  loading: false,
-  error: null,
-  verifying: false,
-  deleting: false,
   status: {
     fetch: 'idle',
     add: 'idle',
@@ -19,246 +16,104 @@ const initialState = {
     bookingDelete: 'idle',
     verify: 'idle',
   },
+  error: null,
   selectedGame: null,
-  newGame: {
-    name: '',
-    type: '',
-    description: '',
-    price: '',
-    image_url: '',
-  },
+  newGame: { name: '', type: '', description: '', price: '', imageUrl: '' },
 };
 
 const adminSlice = createSlice({
   name: 'admin',
   initialState,
   reducers: {
-    // Status reset action for UI convenience
-    resetStatus: (state, action) => {
-      const key = action.payload;
-      if (state.status[key]) {
-        state.status[key] = 'idle';
-      }
-    },
+    /* ----- Status Reset ----- */
+    resetStatus: (state, { payload }) => { state.status[payload] = 'idle'; },
 
-    updateNewGame: (state, action) => {
-      state.newGame = { ...state.newGame, ...action.payload };
+    /* ----- Update Form Fields ----- */
+    updateNewGame: (state, { payload }) => {
+      state.newGame = { ...state.newGame, ...payload };
     },
+    setSelectedGame: (state, { payload }) => { state.selectedGame = payload; },
 
-    setSelectedGame: (state, action) => {
-      state.selectedGame = action.payload;
-    },
-
-    clearSelectedGame: (state) => {
-      state.selectedGame = null;
-    },
-
-    fetchAdminStart: (state) => {
-      state.loading = true;
-      state.error = null;
-      state.status.fetch = 'loading';
-    },
-    fetchAdminSuccess: (state, action) => {
-      state.loading = false;
-      state.games = action.payload.games;
-      state.bookings = action.payload.bookings;
+    /* ----- Fetch Admin Data ----- */
+    fetchStart: (state) => { state.status.fetch = 'loading'; },
+    fetchSuccess: (state, { payload }) => {
       state.status.fetch = 'succeeded';
+      state.games = payload.games;
+      state.bookings = payload.bookings;
     },
-    fetchAdminFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-      state.status.fetch = 'failed';
-    },
+    fetchFail: (state, { payload }) => { state.status.fetch = 'failed'; state.error = payload; },
 
-    verifyStart: (state) => {
-      state.verifying = true;
-      state.error = null;
-      state.status.verify = 'loading';
-    },
-    verifySuccess: (state, action) => {
-      state.verifying = false;
-      const updatedBooking = action.payload;
-      state.bookings = state.bookings.map((booking) =>
-        booking._id === updatedBooking._id ? updatedBooking : booking
-      );
-      state.status.verify = 'succeeded';
-    },
-    verifyFailure: (state, action) => {
-      state.verifying = false;
-      state.error = action.payload;
-      state.status.verify = 'failed';
-    },
-
-    bookingDeleteStart: (state) => {
-      state.deleting = true;
-      state.error = null;
-      state.status.bookingDelete = 'loading';
-    },
-    bookingDeleteSuccess: (state, action) => {
-      state.deleting = false;
-      const deletedId = action.payload;
-      state.bookings = state.bookings.filter((b) => b._id !== deletedId);
-      state.status.bookingDelete = 'succeeded';
-    },
-    bookingDeleteFailure: (state, action) => {
-      state.deleting = false;
-      state.error = action.payload;
-      state.status.bookingDelete = 'failed';
-    },
-
-    addGameStart: (state) => {
-      state.status.add = 'loading';
-      state.error = null;
-    },
-    addGameSuccess: (state, action) => {
-      state.games.push(action.payload);
+    /* ----- Add Game ----- */
+    addStart: (state) => { state.status.add = 'loading'; },
+    addSuccess: (state, { payload }) => {
       state.status.add = 'succeeded';
-      state.newGame = { name: '', type: '', description: '', price: '', image_url: '' };
+      state.games.push(payload);
+      state.newGame = { name: '', type: '', description: '', price: '', imageUrl: '' };
     },
-    addGameFailure: (state, action) => {
-      state.error = action.payload;
-      state.status.add = 'failed';
-    },
+    addFail: (state, { payload }) => { state.status.add = 'failed'; state.error = payload; },
 
-    editGameStart: (state) => {
-      state.status.update = 'loading';
-      state.error = null;
-    },
-    editGameSuccess: (state, action) => {
-      const updated = action.payload;
-      state.games = state.games.map((game) =>
-        game._id === updated._id ? updated : game
-      );
+    /* ----- Edit Game ----- */
+    editStart: (state) => { state.status.update = 'loading'; },
+    editSuccess: (state, { payload }) => {
       state.status.update = 'succeeded';
+      state.games = state.games.map(g => g._id === payload._id ? payload : g);
       state.selectedGame = null;
     },
-    editGameFailure: (state, action) => {
-      state.error = action.payload;
-      state.status.update = 'failed';
-    },
+    editFail: (state, { payload }) => { state.status.update = 'failed'; state.error = payload; },
 
-    deleteGameStart: (state) => {
-      state.status.delete = 'loading';
-      state.error = null;
-    },
-    deleteGameSuccess: (state, action) => {
-      const deletedId = action.payload;
-      state.games = state.games.filter((g) => g._id !== deletedId);
+    /* ----- Delete Game ----- */
+    delStart: (state) => { state.status.delete = 'loading'; },
+    delSuccess: (state, { payload }) => {
       state.status.delete = 'succeeded';
+      state.games = state.games.filter(g => g._id !== payload);
     },
-    deleteGameFailure: (state, action) => {
-      state.error = action.payload;
-      state.status.delete = 'failed';
+    delFail: (state, { payload }) => { state.status.delete = 'failed'; state.error = payload; },
+
+    /* ----- Verify Booking ----- */
+    verifyStart: (state) => { state.status.verify = 'loading'; },
+    verifySuccess: (state, { payload }) => {
+      state.status.verify = 'succeeded';
+      state.bookings = state.bookings.map(b => b._id === payload._id ? payload : b);
     },
+    verifyFail: (state, { payload }) => { state.status.verify = 'failed'; state.error = payload; },
+
+    /* ----- Delete Booking ----- */
+    bDelStart: (state) => { state.status.bookingDelete = 'loading'; },
+    bDelSuccess: (state, { payload }) => {
+      state.status.bookingDelete = 'succeeded';
+      state.bookings = state.bookings.filter(b => b._id !== payload);
+    },
+    bDelFail: (state, { payload }) => { state.status.bookingDelete = 'failed'; state.error = payload; },
   },
 });
 
-// Thunks
-
 export const fetchAdminData = () => async (dispatch) => {
-  dispatch(adminSlice.actions.fetchAdminStart());
+  dispatch(adminSlice.actions.fetchStart());
   try {
     const res = await axios.get(`${BASE_URL}/data`, { withCredentials: true });
-    dispatch(adminSlice.actions.fetchAdminSuccess(res.data));
-  } catch (error) {
-    const message = error.response?.data?.message || error.message;
-    dispatch(adminSlice.actions.fetchAdminFailure(message));
-    toast.error('Failed to fetch admin data');
+    dispatch(adminSlice.actions.fetchSuccess(res.data));
+  } catch (err) {
+    const msg = err.response?.data?.message || err.message;
+    dispatch(adminSlice.actions.fetchFail(msg));
+    toast.error(msg);
   }
 };
 
-export const verifyBooking = ({ bookingId, verified }) => async (dispatch) => {
-  dispatch(adminSlice.actions.verifyStart());
+export const addGame = (game) => async (dispatch) => {
+  dispatch(adminSlice.actions.addStart());
   try {
-    const res = await axios.patch(
-      `${BASE_URL}/bookings/${bookingId}/verify`,
-      { verified },
-      {
-        withCredentials: true,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-    dispatch(adminSlice.actions.verifySuccess(res.data.data));
-    toast.success(`Booking ${verified ? 'verified' : 'rejected'} successfully!`);
-  } catch (error) {
-    const message = error.response?.data?.message || error.message;
-    dispatch(adminSlice.actions.verifyFailure(message));
-    toast.error('Failed to update booking');
-  }
-};
-
-export const deleteBooking = (bookingId) => async (dispatch) => {
-  dispatch(adminSlice.actions.bookingDeleteStart());
-  try {
-    await axios.delete(`${BASE_URL}/bookings/${bookingId}`, { withCredentials: true });
-    dispatch(adminSlice.actions.bookingDeleteSuccess(bookingId));
-    toast.success('Booking deleted successfully!');
-  } catch (error) {
-    const message = error.response?.data?.message || error.message;
-    dispatch(adminSlice.actions.bookingDeleteFailure(message));
-    toast.error('Failed to delete booking');
-  }
-};
-
-export const addGame = (gameData) => async (dispatch) => {
-  dispatch(adminSlice.actions.addGameStart());
-  try {
-    const res = await axios.post(`${BASE_URL}/add-game`, gameData, {
-      withCredentials: true,
-      headers: { 'Content-Type': 'application/json' },
+    const res = await axios.post(`${BASE_URL}/add-game`, game, {
+      withCredentials: true, headers: { 'Content-Type': 'application/json' }
     });
-    dispatch(adminSlice.actions.addGameSuccess(res.data.data));
+    dispatch(adminSlice.actions.addSuccess(res.data.data));
     toast.success('Game added successfully!');
-  } catch (error) {
-    const message = error.response?.data?.message || error.message;
-    dispatch(adminSlice.actions.addGameFailure(message));
-    toast.error('Failed to add game');
+  } catch (err) {
+    const msg = err.response?.data?.message || err.message;
+    dispatch(adminSlice.actions.addFail(msg));
+    toast.error(msg);
   }
 };
 
-export const updateGame = ({ gameId, gameData }) => async (dispatch) => {
-  dispatch(adminSlice.actions.editGameStart());
-  try {
-    const res = await axios.patch(
-      `${BASE_URL}/edit-game/${gameId}`,
-      gameData,
-      {
-        withCredentials: true,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-    dispatch(adminSlice.actions.editGameSuccess(res.data.data));
-    toast.success('Game updated successfully!');
-  } catch (error) {
-    const message = error.response?.data?.message || error.message;
-    dispatch(adminSlice.actions.editGameFailure(message));
-    toast.error('Failed to update game');
-  }
-};
 
-export const deleteGame = (gameId) => async (dispatch) => {
-  dispatch(adminSlice.actions.deleteGameStart());
-  try {
-    await axios.delete(`${BASE_URL}/delete-game/${gameId}`, {
-      withCredentials: true,
-    });
-    dispatch(adminSlice.actions.deleteGameSuccess(gameId));
-    toast.success('Game deleted successfully!');
-  } catch (error) {
-    const message = error.response?.data?.message || error.message;
-    dispatch(adminSlice.actions.deleteGameFailure(message));
-    toast.error('Failed to delete game');
-  }
-};
-
-export const {
-  resetStatus,
-  updateNewGame,
-  setSelectedGame,
-  clearSelectedGame,
-} = adminSlice.actions;
-
-export const adminActions = adminSlice.actions;
-
-
+export const { resetStatus, updateNewGame, setSelectedGame } = adminSlice.actions;
 export default adminSlice.reducer;
