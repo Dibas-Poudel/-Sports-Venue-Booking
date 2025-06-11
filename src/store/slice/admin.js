@@ -171,7 +171,7 @@ export const verifyBooking = ({ bookingId, verified }) => async (dispatch) => {
   dispatch(adminSlice.actions.verifyStart());
   try {
     const res = await axios.patch(
-      `${BASE_URL}/${bookingId}/verify`,
+      `${BASE_URL}/bookings/${bookingId}/verify`,
       { verified },
       {
         withCredentials: true,
@@ -190,7 +190,7 @@ export const verifyBooking = ({ bookingId, verified }) => async (dispatch) => {
 export const deleteBooking = (bookingId) => async (dispatch) => {
   dispatch(adminSlice.actions.bookingDeleteStart());
   try {
-    await axios.delete(`${BASE_URL}/${bookingId}`, { withCredentials: true });
+    await axios.delete(`${BASE_URL}/bookings/${bookingId}`, { withCredentials: true });
     dispatch(adminSlice.actions.bookingDeleteSuccess(bookingId));
     toast.success('Booking deleted successfully!');
   } catch (error) {
