@@ -167,7 +167,6 @@ export function createBooking({ venueName, date, time, name }) {
     try {
       const response = await axios.post(`${BASE_URL}/`, { venueName, date, time, name }, { withCredentials: true });
       dispatch(bookingActions.createSuccess(response.data.data));
-      toast.success('Booking created successfully!');
       return response.data.data; // Return success data explicitly
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
