@@ -85,7 +85,6 @@ const BookingPage = () => {
     })
   ).unwrap();
 } catch (error) {
-  toast.error("Failed to create booking. Please try again.");
   console.error("Booking error:", error);
 }
 
