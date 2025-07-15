@@ -1,25 +1,33 @@
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchIndoorSports } from "../store/slice/sportsvenue";
+import { resetAllStatuses } from "../store/slice/adminSlice";
 import Spinner from "../components/Spinner";
 
 const IndoorGames = () => {
   const dispatch = useDispatch();
+
   const {
     indoorSports,
-    loading,
     error,
     indoorStatus,
   } = useSelector((state) => state.sportsVenue);
 
-  const { status } = useSelector((state) => state.admin); 
-  
+  const { status } = useSelector((state) => state.admin);
+
   useEffect(() => {
-    if (indoorStatus === 'idle' || status.fetch === 'succeeded' || status.add === 'succeeded' || status.update === 'succeeded' || status.delete === 'succeeded') {
+    if (
+      status.add === "succeeded" ||
+      status.update === "succeeded" ||
+      status.delete === "succeeded"
+    ) {
+      dispatch(fetchIndoorSports());
+      dispatch(resetAllStatuses()); // ✅ Reset all admin statuses to 'idle'
+    } else if (indoorStatus === "idle") {
       dispatch(fetchIndoorSports());
     }
-  }, [dispatch, indoorStatus, status]);
+  }, [dispatch, status, indoorStatus]);
 
   return (
     <section className="py-16 bg-gray-900 text-white">
@@ -29,7 +37,7 @@ const IndoorGames = () => {
           Choose from a variety of indoor games to play and enjoy.
         </p>
 
-        {loading ? (
+        {indoorStatus === "loading" ? (
           <Spinner />
         ) : error ? (
           <div className="text-center text-red-500 text-lg">

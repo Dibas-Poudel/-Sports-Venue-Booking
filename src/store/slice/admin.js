@@ -24,15 +24,30 @@ const adminSlice = createSlice({
   name: "admin",
   initialState,
   reducers: {
+    // ✅ Status reset reducers
     resetStatus: (state, { payload }) => {
       state.status[payload] = "idle";
     },
+    resetAllStatuses: (state) => {
+      state.status = {
+        fetch: "idle",
+        add: "idle",
+        update: "idle",
+        delete: "idle",
+        bookingDelete: "idle",
+        verify: "idle",
+      };
+    },
+
+    // Game & Booking helpers
     updateNewGame: (state, { payload }) => {
       state.newGame = { ...state.newGame, ...payload };
     },
     setSelectedGame: (state, { payload }) => {
       state.selectedGame = payload;
     },
+
+    // Fetch Admin Data
     fetchStart: (state) => {
       state.status.fetch = "loading";
       state.error = null;
@@ -46,6 +61,8 @@ const adminSlice = createSlice({
       state.status.fetch = "failed";
       state.error = payload;
     },
+
+    // Add Game
     addStart: (state) => {
       state.status.add = "loading";
       state.error = null;
@@ -59,6 +76,8 @@ const adminSlice = createSlice({
       state.status.add = "failed";
       state.error = payload;
     },
+
+    // Update Game
     editStart: (state) => {
       state.status.update = "loading";
       state.error = null;
@@ -72,6 +91,8 @@ const adminSlice = createSlice({
       state.status.update = "failed";
       state.error = payload;
     },
+
+    // Delete Game
     delStart: (state) => {
       state.status.delete = "loading";
       state.error = null;
@@ -84,6 +105,8 @@ const adminSlice = createSlice({
       state.status.delete = "failed";
       state.error = payload;
     },
+
+    // Verify Booking
     verifyStart: (state) => {
       state.status.verify = "loading";
       state.error = null;
@@ -96,6 +119,8 @@ const adminSlice = createSlice({
       state.status.verify = "failed";
       state.error = payload;
     },
+
+    // Delete Booking
     bDelStart: (state) => {
       state.status.bookingDelete = "loading";
       state.error = null;
@@ -110,6 +135,8 @@ const adminSlice = createSlice({
     },
   },
 });
+
+// 🔁 Async Thunks
 
 export const fetchAdminData = () => async (dispatch) => {
   dispatch(adminSlice.actions.fetchStart());
@@ -201,6 +228,14 @@ export const deleteBooking = (bookingId) => async (dispatch) => {
   }
 };
 
-export const { resetStatus, updateNewGame, setSelectedGame } = adminSlice.actions;
+// ✅ Export all actions
+export const {
+  resetStatus,
+  resetAllStatuses,
+  updateNewGame,
+  setSelectedGame,
+} = adminSlice.actions;
+
 export const adminActions = adminSlice.actions;
+
 export default adminSlice.reducer;

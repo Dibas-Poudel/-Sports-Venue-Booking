@@ -2,24 +2,32 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOutdoorSports } from "../store/slice/sportsvenue";
+import { resetAllStatuses } from "../store/slice/adminSlice";
 import Spinner from "../components/Spinner";
 
 const OutdoorGames = () => {
   const dispatch = useDispatch();
+
   const {
     outdoorSports,
-    loading,
     error,
     outdoorStatus,
   } = useSelector((state) => state.sportsVenue);
 
-  const { status } = useSelector((state) => state.admin); 
-  
+  const { status } = useSelector((state) => state.admin);
+
   useEffect(() => {
-    if (outdoorStatus === 'idle' || status.fetch === 'succeeded' || status.add === 'succeeded' || status.update === 'succeeded' || status.delete === 'succeeded') {
+    if (
+      status.add === "succeeded" ||
+      status.update === "succeeded" ||
+      status.delete === "succeeded"
+    ) {
+      dispatch(fetchOutdoorSports());
+      dispatch(resetAllStatuses()); // ✅ Reset admin statuses
+    } else if (outdoorStatus === "idle") {
       dispatch(fetchOutdoorSports());
     }
-  }, [dispatch, outdoorStatus, status]);
+  }, [dispatch, status, outdoorStatus]);
 
   return (
     <section className="py-16 bg-gray-900 text-white">
@@ -29,7 +37,7 @@ const OutdoorGames = () => {
           Enjoy our wide range of outdoor sports and activities.
         </p>
 
-        {loading ? (
+        {outdoorStatus === "loading" ? (
           <Spinner />
         ) : error ? (
           <div className="text-center text-red-500 text-lg">

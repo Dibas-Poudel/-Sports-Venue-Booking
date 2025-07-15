@@ -6,94 +6,6 @@ import { toast } from "react-toastify";
 const BASE_URL = "https://sportvenuebackend.onrender.com/api/v1";
 // const BASE_URL = "http://localhost:3000/api/v1"; // works locally
 
-// Thunk: User login
-export function login({ email, password }) {
-  return async function loginThunk(dispatch) {
-    dispatch(userActions.loginStart());
-
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/users/login`,
-        { email, password },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true, 
-        }
-      );
-
-      const { user } = res.data.message;
-
-      if (!user || !user._id) {
-        throw new Error("Invalid user data");
-      }
-
-      dispatch(userActions.loginSuccess({ user, role: user.role }));
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
-      dispatch(userActions.loginFailure(err.message));
-    }
-  };
-}
-
-// Thunk: User registration
-export function register({ email, password }) {
-  return async function registerThunk(dispatch) {
-    dispatch(userActions.registerStart());
-
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/users/register`,
-        { email, password },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true, 
-        }
-      );
-
-      const { user } = res.data.message;
-
-      if (!user || !user._id) {
-        throw new Error("Invalid registration data");
-      }
-
-      dispatch(userActions.registerSuccess({ user, role: user.role }));
-      toast.success("Registration successful!");
-    } catch (err) {
-      console.log(err);
-      toast.error(err.response?.data?.message || "Registration failed");
-      dispatch(userActions.registerFailure(err.message));
-    }
-  };
-}
-
-// Thunk: User logout
-export function logout() {
-  return async function logoutThunk(dispatch) {
-    dispatch(userActions.logoutStart());
-
-    try {
-      await axios.post(
-        `${BASE_URL}/users/logout`,
-        {},
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true, 
-        }
-      );
-
-      dispatch(userActions.logoutSuccess());
-    } catch (err) {
-      dispatch(userActions.logoutFailure(err.message));
-    }
-  };
-}
-
 
 const initialState = {
   profile: null,
@@ -197,6 +109,96 @@ const userSlice = createSlice({
     },
   },
 });
+
+// Thunk: User login
+export function login({ email, password }) {
+  return async function loginThunk(dispatch) {
+    dispatch(userActions.loginStart());
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/users/login`,
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, 
+        }
+      );
+
+      const { user } = res.data.message;
+
+      if (!user || !user._id) {
+        throw new Error("Invalid user data");
+      }
+
+      dispatch(userActions.loginSuccess({ user, role: user.role }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Login failed");
+      dispatch(userActions.loginFailure(err.message));
+    }
+  };
+}
+
+// Thunk: User registration
+export function register({ email, password }) {
+  return async function registerThunk(dispatch) {
+    dispatch(userActions.registerStart());
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/users/register`,
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, 
+        }
+      );
+
+      const { user } = res.data.message;
+
+      if (!user || !user._id) {
+        throw new Error("Invalid registration data");
+      }
+
+      dispatch(userActions.registerSuccess({ user, role: user.role }));
+      toast.success("Registration successful!");
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Registration failed");
+      dispatch(userActions.registerFailure(err.message));
+    }
+  };
+}
+
+// Thunk: User logout
+export function logout() {
+  return async function logoutThunk(dispatch) {
+    dispatch(userActions.logoutStart());
+
+    try {
+      await axios.post(
+        `${BASE_URL}/users/logout`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, 
+        }
+      );
+
+      dispatch(userActions.logoutSuccess());
+    } catch (err) {
+      dispatch(userActions.logoutFailure(err.message));
+    }
+  };
+}
+
+
 
 export const {
   resetLoginStatus,

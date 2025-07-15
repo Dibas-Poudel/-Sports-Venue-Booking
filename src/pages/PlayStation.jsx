@@ -2,24 +2,32 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPlaystationSports } from "../store/slice/sportsvenue";
+import { resetAllStatuses } from "../store/slice/adminSlice";
 import Spinner from "../components/Spinner";
 
 const PlayStationGames = () => {
   const dispatch = useDispatch();
+
   const {
     playstationSports,
-    loading,
     error,
     playstationStatus,
   } = useSelector((state) => state.sportsVenue);
 
-  const { status } = useSelector((state) => state.admin); 
-  
+  const { status } = useSelector((state) => state.admin);
+
   useEffect(() => {
-    if (playstationStatus === 'idle' || status.fetch === 'succeeded' || status.add === 'succeeded' || status.update === 'succeeded' || status.delete === 'succeeded') {
+    if (
+      status.add === "succeeded" ||
+      status.update === "succeeded" ||
+      status.delete === "succeeded"
+    ) {
+      dispatch(fetchPlaystationSports());
+      dispatch(resetAllStatuses()); // ✅ Reset after fetching again
+    } else if (playstationStatus === "idle") {
       dispatch(fetchPlaystationSports());
     }
-  }, [dispatch, playstationStatus, status]);
+  }, [dispatch, status, playstationStatus]);
 
   return (
     <section className="py-16 bg-gray-900 text-white">
@@ -29,7 +37,7 @@ const PlayStationGames = () => {
           Explore our collection of exciting PlayStation games.
         </p>
 
-        {loading ? (
+        {playstationStatus === "loading" ? (
           <Spinner />
         ) : error ? (
           <div className="text-center text-red-500 text-lg">
