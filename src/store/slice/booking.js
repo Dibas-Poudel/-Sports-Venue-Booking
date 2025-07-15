@@ -161,22 +161,23 @@ export const fetchBookings = () => async (dispatch) => {
   }
 };
 
-export const createBooking = ({ venueName, date, time, name }) => async (dispatch) => {
-  dispatch(bookingSlice.actions.createStart());
-  try {
-    const res = await axios.post(
-      `${BASE_URL}/`,
-      { venueName, date, time, name },
-      { withCredentials: true }
-    );
-    dispatch(bookingSlice.actions.createSuccess(res.data.data));
-    toast.success('Booking created successfully!');
-  } catch (err) {
-    const msg = err.response?.data?.message || err.message;
-    dispatch(bookingSlice.actions.createFailure(msg));
-    toast.error(msg);
-  }
-};
+export function createBooking({ venueName, date, time, name }) {
+  return async function (dispatch) {
+    dispatch(bookingActions.createStart());
+    try {
+      const response = await axios.post(`${BASE_URL}/`, { venueName, date, time, name }, { withCredentials: true });
+      dispatch(bookingActions.createSuccess(response.data.data));
+      toast.success('Booking created successfully!');
+      return response.data.data; // Return success data explicitly
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message;
+      dispatch(bookingActions.createFailure(errorMsg));
+      toast.error(errorMsg);
+      throw error;  // **Throw here to reject `.unwrap()`**
+    }
+  };
+}
+
 
 export const updateBooking = ({ bookingId, name, date, time }) => async (dispatch) => {
   dispatch(bookingSlice.actions.updateStart());

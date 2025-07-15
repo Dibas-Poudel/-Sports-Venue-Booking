@@ -75,19 +75,20 @@ const BookingPage = () => {
     }
 
     try {
-      await dispatch(
-        createBooking({
-          userId: user.id,
-          venueName,
-          date,
-          time,
-          name,
-        })
-      ).unwrap();
-    } catch (error) {
-      toast.error("Failed to create booking. Please try again.");
-      console.error("Booking error:", error);
-    }
+  await dispatch(
+    createBooking({
+      userId: user.id,
+      venueName,
+      date,
+      time,
+      name,
+    })
+  ).unwrap();
+} catch (error) {
+  toast.error("Failed to create booking. Please try again.");
+  console.error("Booking error:", error);
+}
+
   };
 
   const isLoading = loading || status.fetchVenueName === "loading";
