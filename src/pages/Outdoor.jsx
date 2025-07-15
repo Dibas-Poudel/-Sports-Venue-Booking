@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOutdoorSports } from "../store/slice/sportsvenue";
-import { resetAllStatuses } from "../store/slice/adminSlice";
+import { resetAllStatuses } from "../store/slice/admin.js";
 import Spinner from "../components/Spinner";
 
 const OutdoorGames = () => {
